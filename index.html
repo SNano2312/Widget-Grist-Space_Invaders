@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Invaders — Grist Widget</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05050f;
+    --grid: #0d0d2b;
+    --accent: #00ff88;
+    --accent2: #ff2d6b;
+    --accent3: #00cfff;
+    --text: #e0ffe0;
+    --muted: #4a6a5a;
+    --shield: #00ff88;
+    --font-main: 'Press Start 2P', monospace;
+    --font-mono: 'Share Tech Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Starfield */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, #aaf 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 5%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 60%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 20%, #aaf 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 75%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 90%, #aaf 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 55%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 35%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 10%, #aaf 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 95%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 90%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 45%, #aaf 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 70%, #fff 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 8px 0;
+  }
+
+  /* HUD */
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 560px;
+    padding: 6px 0;
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  #hud .hud-item { display: flex; flex-direction: column; gap: 4px; }
+  #hud .hud-label { color: var(--muted); font-size: 6px; letter-spacing: 2px; }
+  #hud .hud-val { color: var(--accent); font-size: 10px; }
+  #hud #lives-display { color: var(--accent2); font-size: 10px; letter-spacing: 4px; }
+
+  /* Canvas */
+  canvas {
+    display: block;
+    border: 1px solid #1a1a3a;
+    box-shadow: 0 0 40px rgba(0,255,136,0.08), inset 0 0 80px rgba(0,0,40,0.5);
+    image-rendering: pixelated;
+  }
+
+  /* Player name input */
+  #name-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    font-size: 7px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  #name-bar input {
+    background: transparent;
+    border: 1px solid #1a3a2a;
+    border-bottom: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-main);
+    font-size: 8px;
+    padding: 4px 8px;
+    width: 140px;
+    outline: none;
+    letter-spacing: 2px;
+  }
+  #name-bar input::placeholder { color: var(--muted); font-size: 7px; }
+
+  /* Controls */
+  #ctrl-bar {
+    display: flex;
+    gap: 20px;
+    margin-top: 6px;
+    font-size: 6px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  #ctrl-bar span { display: flex; align-items: center; gap: 5px; }
+  #ctrl-bar .key {
+    border: 1px solid #2a3a2a;
+    padding: 2px 5px;
+    color: var(--text);
+    font-size: 7px;
+    border-radius: 2px;
+  }
+
+  /* Leaderboard */
+  #leaderboard {
+    width: 560px;
+    margin-top: 8px;
+    background: rgba(0,255,136,0.03);
+    border: 1px solid #0d2a1a;
+    padding: 8px 12px;
+  }
+  #leaderboard h3 {
+    font-size: 7px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #0d2a1a;
+    padding-bottom: 5px;
+  }
+  #lb-rows { display: flex; flex-direction: column; gap: 3px; min-height: 20px; }
+  .lb-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7px;
+    padding: 2px 0;
+    font-family: var(--font-mono);
+  }
+  .lb-row .lb-rank { color: var(--muted); width: 24px; }
+  .lb-row .lb-name { color: var(--text); flex: 1; letter-spacing: 1px; }
+  .lb-row .lb-lvl { color: var(--muted); width: 60px; text-align: center; font-size: 6px; }
+  .lb-row .lb-score { color: var(--accent); width: 70px; text-align: right; }
+  .lb-row.gold .lb-name, .lb-row.gold .lb-score { color: #ffd700; }
+  .lb-row.silver .lb-name, .lb-row.silver .lb-score { color: #c0c0c0; }
+  .lb-row.bronze .lb-name, .lb-row.bronze .lb-score { color: #cd7f32; }
+  #lb-status { font-size: 6px; color: var(--muted); text-align: center; margin-top: 4px; letter-spacing: 1px; }
+
+  /* Grist status */
+  #grist-status {
+    font-size: 6px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+  #grist-status.ok { color: #2a8a5a; }
+  #grist-status.err { color: var(--accent2); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="hud-item">
+      <div class="hud-label">SCORE</div>
+      <div class="hud-val" id="sc">000000</div>
+    </div>
+    <div class="hud-item" style="align-items:center">
+      <div class="hud-label">VIES</div>
+      <div id="lives-display">♥ ♥ ♥</div>
+    </div>
+    <div class="hud-item" style="align-items:flex-end">
+      <div class="hud-label">NIVEAU</div>
+      <div class="hud-val" id="lvl-display">01</div>
+    </div>
+  </div>
+
+  <canvas id="c" width="560" height="420"></canvas>
+
+  <div id="name-bar">
+    <span>JOUEUR :</span>
+    <input id="player-name" type="text" maxlength="12" placeholder="TON NOM" spellcheck="false" autocomplete="off" />
+    <span id="grist-status">◉ GRIST</span>
+  </div>
+
+  <div id="ctrl-bar">
+    <span><span class="key">←</span><span class="key">→</span> déplacer</span>
+    <span><span class="key">ESPACE</span> tirer</span>
+    <span><span class="key">P</span> pause</span>
+  </div>
+
+  <div id="leaderboard">
+    <h3>⬡ HALL OF FAME</h3>
+    <div id="lb-rows"><div class="lb-row" style="justify-content:center;color:var(--muted);font-size:6px">CHARGEMENT...</div></div>
+    <div id="lb-status"></div>
+  </div>
+</div>
+
+<script>
+// ─── GRIST INTEGRATION ──────────────────────────────────────────────────────
+const TABLE_NAME = 'Scores'; // Nom de la table dans Grist (à adapter)
+let gristReady = false;
+let gristApi = null;
+
+const gristStatus = document.getElementById('grist-status');
+
+function setGristStatus(ok, msg) {
+  gristStatus.textContent = '◉ ' + msg;
+  gristStatus.className = ok ? 'ok' : 'err';
+}
+
+// Initialisation Grist
+if (typeof grist !== 'undefined') {
+  grist.ready({ requiredAccess: 'full', columns: [] });
+  grist.onReady(async (api) => {
+    gristApi = api;
+    gristReady = true;
+    setGristStatus(true, 'GRIST CONNECTÉ');
+    loadLeaderboard();
+  });
+} else {
+  setGristStatus(false, 'HORS GRIST (démo)');
+  loadDemoLeaderboard();
+}
+
+async function saveScore(name, score, level) {
+  if (!gristReady) return;
+  try {
+    const now = new Date().toISOString().slice(0, 10);
+    await grist.docApi.applyUserActions([
+      ['AddRecord', TABLE_NAME, null, {
+        Joueur: name || 'AAA',
+        Score: score,
+        Niveau: level,
+        Date: now
+      }]
+    ]);
+    setGristStatus(true, 'SCORE SAUVÉ !');
+    setTimeout(() => setGristStatus(true, 'GRIST CONNECTÉ'), 2000);
+    loadLeaderboard();
+  } catch (e) {
+    setGristStatus(false, 'ERREUR SAUVEGARDE');
+    console.error(e);
+  }
+}
+
+async function loadLeaderboard() {
+  if (!gristReady) return;
+  try {
+    const table = await grist.docApi.fetchTable(TABLE_NAME);
+    const rows = [];
+    const len = (table.Joueur || []).length;
+    for (let i = 0; i < len; i++) {
+      rows.push({
+        name: table.Joueur[i] || '???',
+        score: table.Score[i] || 0,
+        level: table.Niveau[i] || 1
+      });
+    }
+    rows.sort((a, b) => b.score - a.score);
+    renderLeaderboard(rows.slice(0, 8));
+  } catch (e) {
+    document.getElementById('lb-status').textContent = 'Table "' + TABLE_NAME + '" introuvable';
+  }
+}
+
+function loadDemoLeaderboard() {
+  renderLeaderboard([
+    { name: 'RAZOR', score: 12400, level: 5 },
+    { name: 'NOVA', score: 9800, level: 4 },
+    { name: 'GHOST', score: 7200, level: 3 },
+    { name: 'PIXEL', score: 5100, level: 2 },
+    { name: 'ACE', score: 3200, level: 2 },
+  ]);
+  document.getElementById('lb-status').textContent = '— SCORES DE DÉMONSTRATION —';
+}
+
+function renderLeaderboard(rows) {
+  const container = document.getElementById('lb-rows');
+  const medals = ['gold', 'silver', 'bronze'];
+  if (!rows.length) {
+    container.innerHTML = '<div class="lb-row" style="justify-content:center;color:var(--muted);font-size:6px">PAS ENCORE DE SCORES</div>';
+    return;
+  }
+  container.innerHTML = rows.map((r, i) => `
+    <div class="lb-row ${medals[i] || ''}">
+      <span class="lb-rank">${String(i + 1).padStart(2, '0')}.</span>
+      <span class="lb-name">${r.name.toUpperCase().padEnd(12)}</span>
+      <span class="lb-lvl">NV.${String(r.level).padStart(2,'0')}</span>
+      <span class="lb-score">${String(r.score).padStart(6, '0')}</span>
+    </div>
+  `).join('');
+}
+
+// ─── GAME ENGINE ─────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 560, H = 420;
+
+// Colors
+const C = {
+  bg: '#05050f',
+  player: '#00ff88',
+  playerGlow: 'rgba(0,255,136,0.4)',
+  bullet: '#00ff88',
+  eBullet: '#ff2d6b',
+  invA: '#ff2d6b',  // top row
+  invB: '#00cfff',  // mid rows
+  invC: '#b060ff',  // bottom rows
+  shield: '#00ff88',
+  explosion: '#ff9900',
+  text: '#e0ffe0',
+  muted: '#2a4a3a',
+  ufo: '#ffd700',
+};
+
+let gameState = 'idle'; // idle | playing | paused | dead | win
+let score = 0, lives = 3, level = 1;
+let keys = {};
+let raf;
+let lastTime = 0;
+
+// Player
+const player = { x: W / 2 - 15, y: H - 52, w: 30, h: 20, speed: 220, shoot: 0 };
+
+// Projectiles
+let bullets = [];
+let eBullets = [];
+let bulletCD = 0;
+let eFireTimer = 0;
+
+// Invaders grid
+let invaders = [];
+let invDir = 1;
+let invMoveT = 0, invMoveI = 0.8;
+let invStepX = 10;
+
+// UFO
+let ufo = null;
+let ufoTimer = 0, ufoInterval = 18;
+
+// Particles
+let particles = [];
+
+// Shields
+let shields = [];
+
+// Score multiplier
+let combo = 0;
+
+function buildInvaders(lvl) {
+  invaders = [];
+  const cols = 10, rows = 4;
+  const startX = 30, startY = 55;
+  const gapX = 48, gapY = 38;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      invaders.push({
+        x: startX + c * gapX,
+        y: startY + r * gapY,
+        w: 26, h: 18,
+        type: r === 0 ? 2 : r < 2 ? 1 : 0,
+        alive: true,
+        frame: 0
+      });
+    }
+  }
+  invMoveI = Math.max(0.12, 0.8 - (lvl - 1) * 0.12);
+  eFireTimer = 0;
+}
+
+function buildShields() {
+  shields = [];
+  const positions = [70, 185, 300, 415];
+  for (const px of positions) {
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 5; c++) {
+        shields.push({ x: px + c * 9, y: H - 100 + r * 9, w: 9, h: 9, hp: 3 });
+      }
+    }
+  }
+}
+
+function initGame() {
+  score = 0; lives = 3; level = 1;
+  player.x = W / 2 - 15;
+  bullets = []; eBullets = []; particles = [];
+  bulletCD = 0; eFireTimer = 0; invMoveT = 0;
+  ufo = null; ufoTimer = 0;
+  buildInvaders(1);
+  buildShields();
+  updateHUD();
+}
+
+function updateHUD() {
+  const pad = n => String(n).padStart(6, '0');
+  document.getElementById('sc').textContent = pad(score);
+  document.getElementById('lvl-display').textContent = String(level).padStart(2, '0');
+  const h = ['♥', '♥', '♥'].map((v, i) => i < lives ? v : '♡').join(' ');
+  document.getElementById('lives-display').textContent = h;
+}
+
+// ─── DRAWING ──────────────────────────────────────────────────────────────────
+
+function drawPlayer() {
+  const x = player.x, y = player.y, w = player.w, h = player.h;
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = C.playerGlow;
+  ctx.fillStyle = C.player;
+  // Body
+  ctx.fillRect(x + 4, y + 6, w - 8, h - 6);
+  // Cockpit
+  ctx.fillRect(x + 10, y + 2, 10, 8);
+  // Gun
+  ctx.fillRect(x + 12, y, 6, 5);
+  // Legs
+  ctx.fillRect(x, y + 14, 6, 6);
+  ctx.fillRect(x + w - 6, y + 14, 6, 6);
+  ctx.shadowBlur = 0;
+}
+
+function drawInvader(inv) {
+  const { x, y, w, h, type, frame } = inv;
+  const colors = [C.invC, C.invB, C.invA];
+  ctx.fillStyle = colors[type];
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = colors[type];
+
+  if (type === 0) { // squid
+    ctx.fillRect(x + 4, y, w - 8, 4);
+    ctx.fillRect(x + 2, y + 4, w - 4, 4);
+    ctx.fillRect(x, y + 8, w, 4);
+    ctx.fillRect(x + 2, y + 12, 4, 4);
+    ctx.fillRect(x + w - 6, y + 12, 4, 4);
+    if (frame) {
+      ctx.fillRect(x, y + 12, 2, 4);
+      ctx.fillRect(x + w - 2, y + 12, 2, 4);
+    } else {
+      ctx.fillRect(x + 2, y + 14, 2, 4);
+      ctx.fillRect(x + w - 4, y + 14, 2, 4);
+    }
+  } else if (type === 1) { // crab
+    ctx.fillRect(x + 4, y, 4, 4);
+    ctx.fillRect(x + w - 8, y, 4, 4);
+    ctx.fillRect(x + 2, y + 4, w - 4, 4);
+    ctx.fillRect(x, y + 8, w, 4);
+    ctx.fillRect(x + 4, y + 12, 4, 4);
+    ctx.fillRect(x + w - 8, y + 12, 4, 4);
+    if (frame) {
+      ctx.fillRect(x, y + 4, 2, 4);
+      ctx.fillRect(x + w - 2, y + 4, 2, 4);
+    }
+  } else { // octopus
+    ctx.fillRect(x + 2, y, w - 4, 4);
+    ctx.fillRect(x, y + 4, w, 8);
+    ctx.fillRect(x + 2, y + 12, 4, 4);
+    ctx.fillRect(x + w - 6, y + 12, 4, 4);
+    ctx.fillRect(x + 8, y + 12, 4, 4);
+    ctx.fillRect(x + w - 12, y + 12, 4, 4);
+    // Eyes
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(x + 6, y + 6, 3, 3);
+    ctx.fillRect(x + w - 9, y + 6, 3, 3);
+    ctx.fillStyle = colors[type];
+  }
+  ctx.shadowBlur = 0;
+}
+
+function drawUFO() {
+  if (!ufo) return;
+  ctx.fillStyle = C.ufo;
+  ctx.shadowBlur = 10; ctx.shadowColor = C.ufo;
+  ctx.fillRect(ufo.x + 8, ufo.y, ufo.w - 16, ufo.h - 4);
+  ctx.fillRect(ufo.x + 4, ufo.y + 4, ufo.w - 8, ufo.h - 4);
+  ctx.fillRect(ufo.x, ufo.y + 8, ufo.w, ufo.h - 8);
+  ctx.fillStyle = C.bg;
+  for (let i = 0; i < 3; i++) ctx.fillRect(ufo.x + 6 + i * 10, ufo.y + 9, 5, 4);
+  ctx.shadowBlur = 0;
+}
+
+function drawShields() {
+  for (const s of shields) {
+    if (s.hp <= 0) continue;
+    const alpha = s.hp / 3;
+    ctx.fillStyle = `rgba(0,255,136,${alpha * 0.9})`;
+    ctx.fillRect(s.x, s.y, s.w, s.h);
+  }
+}
+
+function drawBullets() {
+  ctx.shadowBlur = 8;
+  for (const b of bullets) {
+    ctx.shadowColor = C.bullet;
+    ctx.fillStyle = C.bullet;
+    ctx.fillRect(b.x - 1, b.y, 3, 10);
+  }
+  for (const b of eBullets) {
+    ctx.shadowColor = C.eBullet;
+    ctx.fillStyle = C.eBullet;
+    ctx.fillRect(b.x - 1, b.y, 3, 8);
+  }
+  ctx.shadowBlur = 0;
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life / p.maxLife;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.s, p.s);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function explode(x, y, color, count = 12) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 30 + Math.random() * 80;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      color,
+      life: 0.6 + Math.random() * 0.4,
+      maxLife: 0.6 + Math.random() * 0.4,
+      s: 2 + Math.random() * 3
+    });
+  }
+}
+
+function drawOverlay(text, sub) {
+  ctx.fillStyle = 'rgba(5,5,15,0.75)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.shadowBlur = 20; ctx.shadowColor = '#00ff88';
+  ctx.fillStyle = '#00ff88';
+  ctx.font = '16px "Press Start 2P"';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, W / 2, H / 2 - 20);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#4a8a6a';
+  ctx.font = '8px "Press Start 2P"';
+  ctx.fillText(sub, W / 2, H / 2 + 10);
+  ctx.textAlign = 'left';
+}
+
+function drawGround() {
+  ctx.strokeStyle = 'rgba(0,255,136,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, H - 30);
+  ctx.lineTo(W, H - 30);
+  ctx.stroke();
+}
+
+// ─── UPDATE ───────────────────────────────────────────────────────────────────
+
+function update(dt) {
+  if (gameState !== 'playing') return;
+
+  // Player movement
+  if (keys['ArrowLeft'] || keys['a']) player.x = Math.max(0, player.x - player.speed * dt);
+  if (keys['ArrowRight'] || keys['d']) player.x = Math.min(W - player.w, player.x + player.speed * dt);
+
+  // Player shoot
+  bulletCD -= dt;
+  if ((keys[' '] || keys['ArrowUp']) && bulletCD <= 0) {
+    bullets.push({ x: player.x + player.w / 2, y: player.y, speed: 480 });
+    bulletCD = 0.32;
+  }
+
+  // Move bullets
+  bullets = bullets.filter(b => {
+    b.y -= b.speed * dt;
+    return b.y > -10;
+  });
+
+  eBullets = eBullets.filter(b => {
+    b.y += b.speed * dt;
+    return b.y < H + 10;
+  });
+
+  // Move invaders
+  invMoveT += dt;
+  if (invMoveT >= invMoveI) {
+    invMoveT = 0;
+    let edge = false;
+    const alive = invaders.filter(i => i.alive);
+    for (const inv of alive) {
+      inv.frame = 1 - inv.frame;
+      inv.x += invStepX * invDir;
+      if (inv.x <= 0 || inv.x + inv.w >= W) edge = true;
+    }
+    if (edge) {
+      invDir *= -1;
+      for (const inv of alive) inv.y += 18;
+      // Speed up
+      invMoveI = Math.max(0.06, invMoveI * 0.92);
+    }
+  }
+
+  // Enemy fire
+  eFireTimer += dt;
+  const eInterval = Math.max(0.4, 1.6 - (level - 1) * 0.2);
+  if (eFireTimer >= eInterval) {
+    eFireTimer = 0;
+    const alive = invaders.filter(i => i.alive);
+    if (alive.length) {
+      const shooter = alive[Math.floor(Math.random() * alive.length)];
+      eBullets.push({ x: shooter.x + shooter.w / 2, y: shooter.y + shooter.h, speed: 160 + level * 20 });
+    }
+  }
+
+  // UFO
+  ufoTimer += dt;
+  if (ufoTimer >= ufoInterval && !ufo) {
+    ufoTimer = 0;
+    ufoInterval = 15 + Math.random() * 10;
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    ufo = { x: dir > 0 ? -50 : W + 50, y: 20, w: 40, h: 16, dir, speed: 120 };
+  }
+  if (ufo) {
+    ufo.x += ufo.dir * ufo.speed * dt;
+    if (ufo.x > W + 60 || ufo.x < -60) ufo = null;
+  }
+
+  // Bullet vs invaders
+  for (let bi = bullets.length - 1; bi >= 0; bi--) {
+    const b = bullets[bi];
+    for (const inv of invaders) {
+      if (!inv.alive) continue;
+      if (b.x > inv.x && b.x < inv.x + inv.w && b.y > inv.y && b.y < inv.y + inv.h) {
+        inv.alive = false;
+        bullets.splice(bi, 1);
+        const pts = (inv.type === 2 ? 30 : inv.type === 1 ? 20 : 10) * level;
+        score += pts;
+        explode(inv.x + inv.w / 2, inv.y + inv.h / 2, [C.invC, C.invB, C.invA][inv.type], 10);
+        updateHUD();
+        break;
+      }
+    }
+  }
+
+  // Bullet vs UFO
+  for (let bi = bullets.length - 1; bi >= 0; bi--) {
+    const b = bullets[bi];
+    if (ufo && b.x > ufo.x && b.x < ufo.x + ufo.w && b.y > ufo.y && b.y < ufo.y + ufo.h) {
+      explode(ufo.x + ufo.w / 2, ufo.y, C.ufo, 16);
+      score += 100 * level;
+      ufo = null;
+      bullets.splice(bi, 1);
+      updateHUD();
+    }
+  }
+
+  // Bullet vs shields
+  for (let bi = bullets.length - 1; bi >= 0; bi--) {
+    const b = bullets[bi];
+    let hit = false;
+    for (const s of shields) {
+      if (s.hp <= 0) continue;
+      if (b.x > s.x && b.x < s.x + s.w && b.y > s.y && b.y < s.y + s.h) {
+        s.hp--;
+        bullets.splice(bi, 1);
+        hit = true;
+        break;
+      }
+    }
+    if (hit) continue;
+  }
+
+  // Enemy bullet vs shields
+  for (let bi = eBullets.length - 1; bi >= 0; bi--) {
+    const b = eBullets[bi];
+    for (const s of shields) {
+      if (s.hp <= 0) continue;
+      if (b.x > s.x && b.x < s.x + s.w && b.y > s.y && b.y < s.y + s.h) {
+        s.hp--;
+        eBullets.splice(bi, 1);
+        break;
+      }
+    }
+  }
+
+  // Enemy bullet vs player
+  for (let bi = eBullets.length - 1; bi >= 0; bi--) {
+    const b = eBullets[bi];
+    if (b.x > player.x && b.x < player.x + player.w && b.y > player.y && b.y < player.y + player.h) {
+      eBullets.splice(bi, 1);
+      lives--;
+      explode(player.x + player.w / 2, player.y + player.h / 2, C.player, 20);
+      updateHUD();
+      if (lives <= 0) { endGame(false); return; }
+    }
+  }
+
+  // Invaders reach ground
+  for (const inv of invaders) {
+    if (inv.alive && inv.y + inv.h >= H - 30) {
+      endGame(false);
+      return;
+    }
+  }
+
+  // All invaders killed → next level
+  if (invaders.every(i => !i.alive)) {
+    level++;
+    bullets = []; eBullets = [];
+    buildInvaders(level);
+    buildShields();
+    invMoveT = 0;
+    updateHUD();
+    lvlEl && (lvlEl.textContent = String(level).padStart(2, '0'));
+  }
+
+  // Particles
+  for (const p of particles) {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vy += 60 * dt;
+    p.life -= dt;
+  }
+  particles = particles.filter(p => p.life > 0);
+}
+
+function endGame(win) {
+  gameState = win ? 'win' : 'dead';
+  const name = document.getElementById('player-name').value.trim() || 'ANONYME';
+  saveScore(name, score, level);
+  updateHUD();
+}
+
+// ─── RENDER LOOP ─────────────────────────────────────────────────────────────
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid scanlines
+  ctx.strokeStyle = 'rgba(0,30,10,0.4)';
+  ctx.lineWidth = 1;
+  for (let y = 0; y < H; y += 20) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  drawGround();
+  drawShields();
+  drawBullets();
+  for (const inv of invaders) { if (inv.alive) drawInvader(inv); }
+  drawUFO();
+  drawPlayer();
+  drawParticles();
+
+  if (gameState === 'idle') drawOverlay('SPACE INVADERS', 'APPUIE SUR ESPACE POUR JOUER');
+  if (gameState === 'paused') drawOverlay('PAUSE', 'P POUR REPRENDRE');
+  if (gameState === 'dead') drawOverlay('GAME OVER', 'ESPACE POUR REJOUER');
+  if (gameState === 'win') drawOverlay('NIVEAU ' + level + ' !', 'ESPACE POUR CONTINUER');
+}
+
+function loop(ts) {
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+  update(dt);
+  render();
+  raf = requestAnimationFrame(loop);
+}
+
+// ─── INPUT ────────────────────────────────────────────────────────────────────
+
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (gameState === 'idle' || gameState === 'dead' || gameState === 'win') {
+      initGame();
+      gameState = 'playing';
+    }
+  }
+  if (e.key === 'p' || e.key === 'P') {
+    if (gameState === 'playing') gameState = 'paused';
+    else if (gameState === 'paused') gameState = 'playing';
+  }
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// Touch controls
+let touchStartX = 0;
+canvas.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  if (gameState === 'idle' || gameState === 'dead' || gameState === 'win') {
+    initGame(); gameState = 'playing';
+  } else {
+    keys[' '] = true;
+    setTimeout(() => { keys[' '] = false; }, 100);
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  const dx = e.touches[0].clientX - touchStartX;
+  touchStartX = e.touches[0].clientX;
+  player.x = Math.max(0, Math.min(W - player.w, player.x + dx));
+}, { passive: true });
+
+// ─── START ────────────────────────────────────────────────────────────────────
+
+initGame();
+gameState = 'idle';
+lastTime = performance.now();
+raf = requestAnimationFrame(loop);
+</script>
+</body>
+</html>
