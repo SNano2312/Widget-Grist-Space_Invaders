@@ -7,69 +7,36 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --green:#00ff88;--red:#ff2d6b;--cyan:#00cfff;--gold:#ffd700;
-  --purple:#b060ff;--bg:#05050f;--muted:#3a5a4a;
-  --font:'Press Start 2P',monospace;
-}
+:root{--green:#00ff88;--red:#ff2d6b;--cyan:#00cfff;--gold:#ffd700;--purple:#b060ff;--bg:#05050f;--muted:#3a5a4a;--font:'Press Start 2P',monospace;}
 html,body{width:100%;height:100%;background:var(--bg);color:var(--green);font-family:var(--font);overflow:hidden;}
-body::after{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(1px 1px at  8% 12%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 22% 45%,#aaf 0%,transparent 100%),
-    radial-gradient(1px 1px at 55%  8%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 73% 58%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 88% 22%,#aaf 0%,transparent 100%),
-    radial-gradient(1px 1px at 18% 78%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 62% 72%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 92% 88%,#aaf 0%,transparent 100%),
-    radial-gradient(1px 1px at  4% 52%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 42% 33%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 77%  7%,#aaf 0%,transparent 100%),
-    radial-gradient(1px 1px at 34% 67%,#fff 0%,transparent 100%),
-    radial-gradient(1px 1px at 96% 42%,#aaf 0%,transparent 100%),
-    radial-gradient(1px 1px at 50% 95%,#fff 0%,transparent 100%);
-}
-#wrap{
-  position:relative;z-index:1;
-  display:flex;flex-direction:column;align-items:center;
-  width:100%;height:100%;padding:6px 8px 4px;gap:4px;
-}
-/* HUD */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(1px 1px at 8% 12%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 22% 45%,#aaf 0%,transparent 100%),radial-gradient(1px 1px at 55% 8%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 73% 58%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 88% 22%,#aaf 0%,transparent 100%),radial-gradient(1px 1px at 18% 78%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 62% 72%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 4% 52%,#fff 0%,transparent 100%),radial-gradient(1px 1px at 42% 33%,#fff 0%,transparent 100%);}
+#wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;padding:6px 8px 4px;gap:4px;}
 #hud{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:820px;font-size:clamp(7px,1.4vw,11px);}
-.hg{display:flex;flex-direction:column;gap:3px;}
-.hg.c{align-items:center;}.hg.r{align-items:flex-end;}
-.hl{font-size:.7em;color:var(--muted);letter-spacing:2px;}
-.hv{color:var(--green);}
+.hg{display:flex;flex-direction:column;gap:3px;}.hg.c{align-items:center;}.hg.r{align-items:flex-end;}
+.hl{font-size:.7em;color:var(--muted);letter-spacing:2px;}.hv{color:var(--green);}
 #lives-el{color:var(--red);letter-spacing:4px;}
-/* Canvas */
 #cw{flex:1 1 auto;display:flex;align-items:center;justify-content:center;width:100%;max-width:820px;min-height:0;}
 #c{display:block;width:100%;height:100%;object-fit:contain;border:1px solid #1a1a3a;box-shadow:0 0 30px rgba(0,255,136,.07);image-rendering:pixelated;cursor:none;}
-/* Bottom */
 #bot{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;max-width:820px;}
 #nr{display:flex;align-items:center;gap:8px;font-size:clamp(6px,1.1vw,9px);color:var(--muted);}
 #nr input{background:transparent;border:none;border-bottom:1px solid var(--green);color:var(--green);font-family:var(--font);font-size:clamp(6px,1.1vw,9px);padding:2px 6px;width:130px;outline:none;letter-spacing:2px;}
 #nr input::placeholder{color:var(--muted);}
 #gst{padding:2px 7px;border-radius:2px;border:1px solid var(--muted);color:var(--muted);font-size:clamp(5px,.9vw,8px);letter-spacing:1px;transition:color .3s,border-color .3s;}
-#gst.ok{color:#2aff8a;border-color:#0d4a2a;}
-#gst.err{color:var(--red);border-color:#4a1a1a;}
-#gst.saving{color:var(--gold);border-color:#4a3a00;}
+#gst.ok{color:#2aff8a;border-color:#0d4a2a;}#gst.err{color:var(--red);border-color:#4a1a1a;}#gst.saving{color:var(--gold);border-color:#4a3a00;}
 #cr{display:flex;gap:16px;font-size:clamp(5px,.85vw,7px);color:var(--muted);}
 .k{border:1px solid #2a3a2a;border-radius:2px;padding:1px 4px;color:#c0d0c0;font-size:inherit;}
-/* Debug */
-#dbg{width:100%;max-width:820px;background:rgba(255,0,0,.06);border:1px solid #3a1a1a;font-family:monospace;font-size:10px;color:#ff9999;padding:4px 8px;max-height:56px;overflow-y:auto;display:none;}
-/* Leaderboard */
-#lb{width:100%;max-width:820px;background:rgba(0,255,136,.03);border:1px solid #0d2a1a;padding:5px 12px;}
+/* debug console — toujours visible pour diagnostiquer */
+#dbg{width:100%;max-width:820px;background:#0a0005;border:1px solid #3a0a1a;font-family:'Courier New',monospace;font-size:10px;color:#ff9999;padding:4px 8px;height:52px;overflow-y:auto;flex-shrink:0;}
+#dbg-tools{display:flex;gap:6px;width:100%;max-width:820px;flex-shrink:0;}
+#dbg-tools button{font-family:'Courier New',monospace;font-size:9px;padding:2px 8px;background:#0a1a0a;border:1px solid #1a4a1a;color:#00ff88;cursor:pointer;border-radius:2px;}
+#dbg-tools button:hover{background:#0d2a0d;}
+#lb{width:100%;max-width:820px;background:rgba(0,255,136,.03);border:1px solid #0d2a1a;padding:5px 12px;flex-shrink:0;}
 #lb h3{font-size:clamp(5px,.9vw,7px);color:var(--muted);letter-spacing:3px;border-bottom:1px solid #0d2a1a;padding-bottom:4px;margin-bottom:4px;}
 #lbr{display:flex;flex-direction:column;gap:2px;}
 .lr{display:flex;justify-content:space-between;font-family:'Courier New',monospace;font-size:clamp(8px,1.3vw,11px);padding:1px 0;}
-.lr .rk{color:var(--muted);width:24px;}.lr .nm{flex:1;color:#c0d0c0;}
-.lr .lv{color:var(--muted);width:56px;text-align:center;font-size:.85em;}
-.lr .sc{color:var(--green);width:64px;text-align:right;}
-.lr.gold .nm,.lr.gold .sc{color:var(--gold);}
-.lr.silver .nm,.lr.silver .sc{color:#c0c0c0;}
-.lr.bronze .nm,.lr.bronze .sc{color:#cd7f32;}
+.lr .rk{color:var(--muted);width:24px;}.lr .nm{flex:1;color:#c0d0c0;}.lr .lv{color:var(--muted);width:56px;text-align:center;font-size:.85em;}.lr .sc{color:var(--green);width:64px;text-align:right;}
+.lr.gold .nm,.lr.gold .sc{color:var(--gold);}.lr.silver .nm,.lr.silver .sc{color:#c0c0c0;}.lr.bronze .nm,.lr.bronze .sc{color:#cd7f32;}
 #lbn{font-size:clamp(5px,.8vw,7px);color:var(--muted);text-align:center;margin-top:3px;letter-spacing:1px;}
 </style>
 </head>
@@ -93,7 +60,14 @@ body::after{
       <span><span class="k">P</span>&nbsp;pause</span>
     </div>
   </div>
+  <!-- Console de debug toujours visible -->
   <div id="dbg"></div>
+  <div id="dbg-tools">
+    <button onclick="testSave()">&#128190; TEST SAVE</button>
+    <button onclick="testFetch()">&#128196; TEST FETCH</button>
+    <button onclick="testKeys()">&#128273; API KEYS</button>
+    <button onclick="clearLog()">&#10005; CLEAR</button>
+  </div>
   <div id="lb">
     <h3>&#11041;&nbsp;HALL OF FAME</h3>
     <div id="lbr"><div class="lr" style="justify-content:center;color:var(--muted)">CHARGEMENT...</div></div>
@@ -102,150 +76,138 @@ body::after{
 </div>
 <script>
 /* ══════════════════════════════════════════
-   GRIST — handshake via postMessage
+   DEBUG
    ══════════════════════════════════════════ */
 var TABLE = 'Scores';
 var gristOK = false;
-var stEl = document.getElementById('gst');
 var dbgEl = document.getElementById('dbg');
+var stEl  = document.getElementById('gst');
 
-function setSt(cls, msg){ stEl.className = cls; stEl.textContent = '\u25cb ' + msg; }
-function log(m){
-  dbgEl.style.display = 'block';
+function log(m, col) {
   var t = new Date().toISOString().slice(11,19);
-  dbgEl.textContent += t + ' ' + m + '\n';
+  var span = document.createElement('span');
+  span.style.color = col || '#ff9999';
+  span.textContent = t + ' ' + m + '\n';
+  dbgEl.appendChild(span);
   dbgEl.scrollTop = dbgEl.scrollHeight;
   console.log('[SI]', m);
 }
+function logOK(m) { log(m, '#00ff88'); }
+function logWarn(m){ log(m, '#ffd700'); }
+function clearLog(){ dbgEl.innerHTML=''; }
+function setSt(cls,msg){ stEl.className=cls; stEl.textContent='\u25cb '+msg; }
 
-/* ── Charge l'API puis envoie le handshake ── */
-function initGrist() {
-  if (typeof grist === 'undefined') { log('grist undefined'); setSt('err','API ABSENTE'); loadDemoLB(); return; }
-
-  log('grist object found, keys: ' + Object.keys(grist).join(','));
-
-  /* Le widget doit appeler grist.ready() — c'est le signal envoyé à Grist
-     pour lui indiquer quel accès on demande. Grist répond via postMessage
-     avec un événement que l'API intercepte en interne. */
-  try {
-    grist.ready({ requiredAccess: 'full' });
-    log('grist.ready() called');
-  } catch(e) { log('grist.ready error: ' + e); }
-
-  /* ── Stratégie de connexion ──
-     On écoute window.message pour détecter la réponse de Grist,
-     ET on utilise grist.onOptions comme fallback (déclenché quand
-     Grist envoie les options du widget, signe que le handshake est OK). */
-  var connected = false;
-
-  function onConnected() {
-    if (connected) return;
-    connected = true;
-    gristOK = true;
-    setSt('ok', 'CONNECTE');
-    log('Grist handshake OK');
-    loadLB();
-  }
-
-  /* Méthode 1 : grist.onOptions (disponible dans toutes les versions récentes) */
-  if (typeof grist.onOptions === 'function') {
-    log('registering grist.onOptions');
-    grist.onOptions(function(options, interaction) {
-      log('onOptions fired');
-      onConnected();
-    });
-  }
-
-  /* Méthode 2 : grist.onReady (versions plus anciennes) */
-  if (typeof grist.onReady === 'function') {
-    log('registering grist.onReady');
-    grist.onReady(function() {
-      log('onReady fired');
-      onConnected();
-    });
-  }
-
-  /* Méthode 3 : écoute directe des postMessages de Grist */
-  window.addEventListener('message', function(ev) {
-    /* Grist envoie plusieurs types de messages.
-       'options', 'ready', 'newRecord' sont des signaux fiables. */
-    if (ev.data && (ev.data.type === 'options' || ev.data.type === 'ready')) {
-      log('postMessage received: ' + JSON.stringify(ev.data).slice(0,80));
-      onConnected();
-    }
-  });
-
-  /* Méthode 4 : tentative directe après 2 s si rien n'a répondu
-     (utile si le widget est intégré dans un iframe sans handshake complet) */
-  setTimeout(function() {
-    if (!connected) {
-      log('2s timeout — tentative directe sans handshake');
-      gristOK = true;
-      setSt('saving', 'TENTATIVE...');
-      /* On teste avec un fetchTable pour vérifier que l'API fonctionne */
-      probeLB();
-    }
-  }, 2000);
-}
-
-function probeLB() {
-  /* Teste si docApi répond, et si oui valide la connexion */
-  if (!grist || !grist.docApi) { setSt('err','docApi ABSENT'); loadDemoLB(); return; }
-  var p;
-  try { p = grist.docApi.fetchTable(TABLE); } catch(e) { setSt('err','FETCH ERR'); log('probe fetchTable threw: '+e); loadDemoLB(); return; }
-  if (!p || typeof p.then !== 'function') { setSt('err','NO PROMISE'); loadDemoLB(); return; }
-  p.then(function(t) {
-    log('probe fetchTable ok, rows: '+(t.Joueur||[]).length);
-    setSt('ok','CONNECTE');
-    renderLBData(t);
-  }).catch(function(e) {
-    log('probe fetchTable rejected: '+e);
-    setSt('err', String(e).slice(0,22));
-    loadDemoLB();
-  });
-}
-
-/* Charge le script API Grist */
+/* ══════════════════════════════════════════
+   GRIST INIT
+   ══════════════════════════════════════════ */
 (function(){
-  var s = document.createElement('script');
-  s.src = 'https://docs.getgrist.com/grist-plugin-api.js';
-  s.onload  = function(){ log('API script loaded'); initGrist(); };
-  s.onerror = function(){ log('API script failed to load'); setSt('err','HORS GRIST'); loadDemoLB(); };
+  var s=document.createElement('script');
+  s.src='https://docs.getgrist.com/grist-plugin-api.js';
+  s.onload=function(){
+    log('API script loaded','#aaaaff');
+    if(typeof grist==='undefined'){log('grist undefined!');setSt('err','API ABSENTE');return;}
+    logOK('grist found');
+    try{ grist.ready({requiredAccess:'full'}); logOK('grist.ready() OK'); }
+    catch(e){ log('grist.ready err: '+e); }
+
+    if(typeof grist.onOptions==='function'){
+      grist.onOptions(function(opts,interaction){
+        logOK('onOptions fired => handshake OK');
+        gristOK=true; setSt('ok','CONNECTE');
+        loadLB();
+      });
+    }
+    if(typeof grist.onReady==='function'){
+      grist.onReady(function(){ logOK('onReady fired'); if(!gristOK){gristOK=true;setSt('ok','CONNECTE');loadLB();} });
+    }
+  };
+  s.onerror=function(){ log('Script load FAILED'); setSt('err','HORS GRIST'); loadDemoLB(); };
   document.head.appendChild(s);
 })();
 
-/* ── SAVE ── */
-function saveScore(name, sc, lv) {
-  if (!gristOK) { setSt('err','NON CONNECTE'); log('saveScore: not ready'); return; }
-  if (!grist || !grist.docApi) { setSt('err','docApi ABSENT'); return; }
-  setSt('saving','SAUVEGARDE...');
-  log('saveScore: '+name+' sc='+sc+' lv='+lv);
-  var rec = { Joueur: name||'ANONYME', Score: sc, Niveau: lv, Date: new Date().toISOString().slice(0,10) };
-  var p;
-  try { p = grist.docApi.applyUserActions([['AddRecord', TABLE, null, rec]]); }
-  catch(e) { log('applyUserActions threw: '+e); setSt('err',String(e).slice(0,22)); return; }
-  if (!p || typeof p.then !== 'function') { log('applyUserActions returned non-promise'); onSaveOK(); return; }
-  p.then(function(r){ log('save OK: '+JSON.stringify(r)); onSaveOK(); })
-   .catch(function(e){ log('save REJECTED: '+e); setSt('err',String(e).slice(0,24)); });
+/* ══════════════════════════════════════════
+   DEBUG TOOLS (boutons)
+   ══════════════════════════════════════════ */
+function testKeys(){
+  if(typeof grist==='undefined'){log('grist undefined');return;}
+  log('docApi keys: '+Object.keys(grist.docApi||{}).join(','),'#aaaaff');
+  log('selectedTable keys: '+Object.keys(grist.selectedTable||{}).join(','),'#aaaaff');
+  log('coreDocApi keys: '+Object.keys(grist.coreDocApi||{}).join(','),'#aaaaff');
+  log('typeof applyUserActions: '+typeof (grist.docApi||{}).applyUserActions,'#aaaaff');
 }
-function onSaveOK(){ setSt('ok','SCORE SAUVE !'); setTimeout(function(){ setSt('ok','CONNECTE'); },2500); loadLB(); }
 
-/* ── LEADERBOARD ── */
-function loadLB() {
-  if (!gristOK || !grist || !grist.docApi) return;
-  var p;
-  try { p = grist.docApi.fetchTable(TABLE); } catch(e){ log('loadLB threw: '+e); return; }
-  if (!p || typeof p.then !== 'function') return;
-  p.then(renderLBData).catch(function(e){ log('loadLB rejected: '+e); document.getElementById('lbn').textContent='Table "'+TABLE+'" introuvable'; });
+function testFetch(){
+  if(!grist||!grist.docApi){log('docApi absent');return;}
+  logWarn('fetchTable "'+TABLE+'" ...');
+  grist.docApi.fetchTable(TABLE)
+    .then(function(t){ logOK('fetchTable OK, rows='+(t.Joueur||[]).length+' cols='+Object.keys(t).join(',')); })
+    .catch(function(e){ log('fetchTable ERR: '+e); });
 }
-function renderLBData(t) {
-  var rows=[], len=(t.Joueur||[]).length;
-  for(var i=0;i<len;i++) rows.push({name:String(t.Joueur[i]||'???'),score:Number(t.Score[i])||0,level:Number(t.Niveau[i])||1});
-  rows.sort(function(a,b){return b.score-a.score;});
-  renderLB(rows.slice(0,8));
+
+function testSave(){
+  if(!grist||!grist.docApi){log('docApi absent');return;}
+  var name=document.getElementById('pname').value.trim()||'TEST';
+  logWarn('applyUserActions AddRecord ...');
+  var rec={Joueur:name,Score:9999,Niveau:1,Date:new Date().toISOString().slice(0,10)};
+  log('record: '+JSON.stringify(rec),'#aaaaff');
+  grist.docApi.applyUserActions([['AddRecord',TABLE,null,rec]])
+    .then(function(r){ logOK('AddRecord OK: '+JSON.stringify(r)); setSt('ok','TEST OK!'); loadLB(); })
+    .catch(function(e){
+      log('AddRecord ERR: '+e);
+      log('Trying coreDocApi...','#ffd700');
+      // Tentative avec coreDocApi
+      if(grist.coreDocApi && typeof grist.coreDocApi.applyUserActions==='function'){
+        grist.coreDocApi.applyUserActions([['AddRecord',TABLE,null,rec]])
+          .then(function(r){ logOK('coreDocApi OK: '+JSON.stringify(r)); setSt('ok','CORE OK!'); })
+          .catch(function(e2){ log('coreDocApi ERR: '+e2); });
+      } else {
+        log('coreDocApi.applyUserActions absent');
+        // Tentative avec selectedTable.create
+        trySTC(rec);
+      }
+    });
+}
+
+function trySTC(rec){
+  if(!grist.selectedTable||typeof grist.selectedTable.create!=='function'){log('selectedTable.create absent');return;}
+  logWarn('trying selectedTable.create ...');
+  grist.selectedTable.create([rec])
+    .then(function(r){ logOK('selectedTable.create OK: '+JSON.stringify(r)); })
+    .catch(function(e){ log('selectedTable.create ERR: '+e); });
+}
+
+/* ══════════════════════════════════════════
+   SAVE (appelé en fin de partie)
+   ══════════════════════════════════════════ */
+function saveScore(name, sc, lv){
+  if(!gristOK||!grist||!grist.docApi){ setSt('err','NON CONNECTE'); log('saveScore: not ready'); return; }
+  setSt('saving','SAUVEGARDE...');
+  log('saveScore: '+name+' sc='+sc+' lv='+lv,'#ffd700');
+  var rec={Joueur:name||'ANONYME',Score:sc,Niveau:lv,Date:new Date().toISOString().slice(0,10)};
+  grist.docApi.applyUserActions([['AddRecord',TABLE,null,rec]])
+    .then(function(r){ logOK('save OK: '+JSON.stringify(r)); setSt('ok','SCORE SAUVE !'); setTimeout(function(){setSt('ok','CONNECTE');},2500); loadLB(); })
+    .catch(function(e){
+      log('save ERR: '+String(e));
+      setSt('err',String(e).slice(0,26));
+    });
+}
+
+/* ══════════════════════════════════════════
+   LEADERBOARD
+   ══════════════════════════════════════════ */
+function loadLB(){
+  if(!grist||!grist.docApi) return;
+  grist.docApi.fetchTable(TABLE)
+    .then(function(t){
+      var rows=[],len=(t.Joueur||[]).length;
+      for(var i=0;i<len;i++) rows.push({name:String(t.Joueur[i]||'???'),score:Number(t.Score[i])||0,level:Number(t.Niveau[i])||1});
+      rows.sort(function(a,b){return b.score-a.score;});
+      renderLB(rows.slice(0,8));
+    })
+    .catch(function(e){ log('loadLB err: '+e); document.getElementById('lbn').textContent='Table "'+TABLE+'" introuvable'; });
 }
 function loadDemoLB(){
-  renderLB([{name:'RAZOR',score:12400,level:5},{name:'NOVA',score:9800,level:4},{name:'GHOST',score:7200,level:3},{name:'PIXEL',score:5100,level:2},{name:'ACE',score:3200,level:2}]);
+  renderLB([{name:'RAZOR',score:12400,level:5},{name:'NOVA',score:9800,level:4},{name:'GHOST',score:7200,level:3},{name:'PIXEL',score:5100,level:2}]);
   document.getElementById('lbn').textContent='— MODE DEMONSTRATION —';
 }
 function renderLB(rows){
@@ -257,13 +219,12 @@ function renderLB(rows){
 }
 
 /* ══════════════════════════════════════════
-   GAME ENGINE  (canvas 820 × 560)
+   GAME ENGINE
    ══════════════════════════════════════════ */
-var CVS=document.getElementById('c'), CTX=CVS.getContext('2d');
-var GW=820, GH=560;
+var CVS=document.getElementById('c'),CTX=CVS.getContext('2d');
+var GW=820,GH=560;
 var COL={bg:'#05050f',player:'#00ff88',bullet:'#00ff88',ebullet:'#ff2d6b',ia:'#ff2d6b',ib:'#00cfff',ic:'#b060ff',ufo:'#ffd700'};
-
-var state='idle', score=0, lives=3, level=1, keys={}, last=0;
+var state='idle',score=0,lives=3,level=1,keys={},last=0;
 var PL={x:GW/2-20,y:GH-62,w:40,h:24,spd:270};
 var bullets=[],ebullets=[],parts=[],shields=[],invs=[];
 var bcd=0,efire=0,imvT=0,imvI=0.8,idir=1;
@@ -274,7 +235,7 @@ function buildInvaders(lv){
   var cols=11,rows=4,gx=60,gy=44,sx=(GW-cols*gx)/2;
   for(var r=0;r<rows;r++) for(var c=0;c<cols;c++)
     invs.push({x:sx+c*gx,y:62+r*gy,w:30,h:22,type:r===0?2:r<2?1:0,alive:true,fr:0});
-  imvI=Math.max(0.09,0.8-(lv-1)*0.09); efire=0; imvT=0;
+  imvI=Math.max(0.09,0.8-(lv-1)*0.09);efire=0;imvT=0;
 }
 function buildShields(){
   shields=[];
@@ -294,21 +255,16 @@ function hud(){
   var h='';for(var i=0;i<3;i++) h+=(i<lives?'\u2665':'\u2661')+(i<2?' ':'');
   document.getElementById('lives-el').textContent=h;
 }
-
-/* ── draw ── */
 function glo(col,b){CTX.shadowColor=col;CTX.shadowBlur=b;}
 function nog(){CTX.shadowBlur=0;}
-
 function drawPlayer(){
-  var x=PL.x,y=PL.y,w=PL.w,h=PL.h;
+  var x=PL.x,y=PL.y,w=PL.w;
   glo(COL.player,16);CTX.fillStyle=COL.player;
-  CTX.fillRect(x+6,y+8,w-12,h-8);CTX.fillRect(x+14,y+3,12,10);
-  CTX.fillRect(x+17,y,6,6);CTX.fillRect(x,y+17,8,7);CTX.fillRect(x+w-8,y+17,8,7);
-  nog();
+  CTX.fillRect(x+6,y+8,w-12,16);CTX.fillRect(x+14,y+3,12,10);CTX.fillRect(x+17,y,6,6);
+  CTX.fillRect(x,y+17,8,7);CTX.fillRect(x+w-8,y+17,8,7);nog();
 }
 function drawInv(iv){
-  var x=iv.x,y=iv.y,w=iv.w,t=iv.type,f=iv.fr;
-  var col=[COL.ic,COL.ib,COL.ia][t];
+  var x=iv.x,y=iv.y,w=iv.w,t=iv.type,f=iv.fr,col=[COL.ic,COL.ib,COL.ia][t];
   glo(col,7);CTX.fillStyle=col;
   if(t===0){
     CTX.fillRect(x+4,y,w-8,4);CTX.fillRect(x+2,y+4,w-4,4);CTX.fillRect(x,y+8,w,4);
@@ -316,8 +272,7 @@ function drawInv(iv){
     if(f){CTX.fillRect(x,y+12,2,4);CTX.fillRect(x+w-2,y+12,2,4);}
     else{CTX.fillRect(x+2,y+14,2,4);CTX.fillRect(x+w-4,y+14,2,4);}
   }else if(t===1){
-    CTX.fillRect(x+4,y,4,4);CTX.fillRect(x+w-8,y,4,4);
-    CTX.fillRect(x+2,y+4,w-4,4);CTX.fillRect(x,y+8,w,4);
+    CTX.fillRect(x+4,y,4,4);CTX.fillRect(x+w-8,y,4,4);CTX.fillRect(x+2,y+4,w-4,4);CTX.fillRect(x,y+8,w,4);
     CTX.fillRect(x+4,y+12,4,4);CTX.fillRect(x+w-8,y+12,4,4);
     if(f){CTX.fillRect(x,y+4,2,4);CTX.fillRect(x+w-2,y+4,2,4);}
   }else{
@@ -329,17 +284,13 @@ function drawInv(iv){
   nog();
 }
 function drawUFO(){
-  if(!ufo)return;
-  glo(COL.ufo,12);CTX.fillStyle=COL.ufo;
+  if(!ufo)return;glo(COL.ufo,12);CTX.fillStyle=COL.ufo;
   CTX.fillRect(ufo.x+12,ufo.y,ufo.w-24,ufo.h-4);CTX.fillRect(ufo.x+5,ufo.y+4,ufo.w-10,ufo.h-4);
-  CTX.fillRect(ufo.x,ufo.y+9,ufo.w,ufo.h-9);
-  CTX.fillStyle=COL.bg;for(var i=0;i<3;i++) CTX.fillRect(ufo.x+9+i*14,ufo.y+10,7,5);
-  nog();
+  CTX.fillRect(ufo.x,ufo.y+9,ufo.w,ufo.h-9);CTX.fillStyle=COL.bg;
+  for(var i=0;i<3;i++) CTX.fillRect(ufo.x+9+i*14,ufo.y+10,7,5);nog();
 }
 function drawShields(){
-  shields.forEach(function(s){
-    if(s.hp<=0)return;CTX.fillStyle='rgba(0,255,136,'+(s.hp/3*.85)+')';CTX.fillRect(s.x,s.y,s.w,s.h);
-  });
+  shields.forEach(function(s){if(s.hp<=0)return;CTX.fillStyle='rgba(0,255,136,'+(s.hp/3*.85)+')';CTX.fillRect(s.x,s.y,s.w,s.h);});
 }
 function drawBullets(){
   CTX.shadowBlur=9;
@@ -348,11 +299,9 @@ function drawBullets(){
   nog();
 }
 function drawParts(){
-  parts.forEach(function(p){CTX.globalAlpha=Math.max(0,p.life/p.ml);CTX.fillStyle=p.col;CTX.fillRect(p.x,p.y,p.s,p.s);});
-  CTX.globalAlpha=1;
+  parts.forEach(function(p){CTX.globalAlpha=Math.max(0,p.life/p.ml);CTX.fillStyle=p.col;CTX.fillRect(p.x,p.y,p.s,p.s);});CTX.globalAlpha=1;
 }
 function drawGround(){CTX.strokeStyle='rgba(0,255,136,.16)';CTX.lineWidth=1;CTX.beginPath();CTX.moveTo(0,GH-42);CTX.lineTo(GW,GH-42);CTX.stroke();}
-
 function overlay(l1,l2){
   CTX.fillStyle='rgba(5,5,15,.80)';CTX.fillRect(0,0,GW,GH);
   glo('#00ff88',22);CTX.fillStyle='#00ff88';CTX.font='22px "Press Start 2P"';CTX.textAlign='center';
@@ -360,44 +309,34 @@ function overlay(l1,l2){
   CTX.fillStyle='#3a6a4a';CTX.font='11px "Press Start 2P"';CTX.fillText(l2,GW/2,GH/2+16);CTX.textAlign='left';
 }
 function drawLvlUp(){
-  CTX.globalAlpha=Math.min(1,lvlT*2.5);
-  glo('#00cfff',18);CTX.fillStyle='#00cfff';CTX.font='18px "Press Start 2P"';CTX.textAlign='center';
-  CTX.fillText('NIVEAU '+level+' !',GW/2,GH/2);CTX.textAlign='left';nog();CTX.globalAlpha=1;
+  CTX.globalAlpha=Math.min(1,lvlT*2.5);glo('#00cfff',18);CTX.fillStyle='#00cfff';
+  CTX.font='18px "Press Start 2P"';CTX.textAlign='center';CTX.fillText('NIVEAU '+level+' !',GW/2,GH/2);
+  CTX.textAlign='left';nog();CTX.globalAlpha=1;
 }
-
-/* ── physics ── */
-function boom(x,y,col,n){
-  for(var i=0;i<(n||12);i++){var a=Math.random()*Math.PI*2,v=35+Math.random()*95;parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,col:col,life:.5+Math.random()*.5,ml:.5+Math.random()*.5,s:2+Math.random()*3.5});}
-}
+function boom(x,y,col,n){for(var i=0;i<(n||12);i++){var a=Math.random()*Math.PI*2,v=35+Math.random()*95;parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,col:col,life:.5+Math.random()*.5,ml:.5+Math.random()*.5,s:2+Math.random()*3.5});}}
 function hit(b,o){return b.x>o.x&&b.x<o.x+o.w&&b.y>o.y&&b.y<o.y+o.h;}
 
 function update(dt){
   if(state==='levelup'){lvlT-=dt;if(lvlT<=0)state='playing';tickP(dt);return;}
   if(state!=='playing')return;
-
   if(keys['ArrowLeft']||keys['a']) PL.x=Math.max(0,PL.x-PL.spd*dt);
   if(keys['ArrowRight']||keys['d']) PL.x=Math.min(GW-PL.w,PL.x+PL.spd*dt);
   bcd-=dt;
   if((keys[' ']||keys['ArrowUp'])&&bcd<=0){bullets.push({x:PL.x+PL.w/2,y:PL.y,spd:580});bcd=0.25;}
-
   var i,j;
   for(i=bullets.length-1;i>=0;i--){bullets[i].y-=bullets[i].spd*dt;if(bullets[i].y<-15)bullets.splice(i,1);}
   for(i=ebullets.length-1;i>=0;i--){ebullets[i].y+=ebullets[i].spd*dt;if(ebullets[i].y>GH+15)ebullets.splice(i,1);}
-
   imvT+=dt;
   if(imvT>=imvI){
     imvT=0;var live=invs.filter(function(v){return v.alive;}),edge=false;
     live.forEach(function(v){v.fr=1-v.fr;v.x+=13*idir;if(v.x<=2||v.x+v.w>=GW-2)edge=true;});
     if(edge){idir*=-1;live.forEach(function(v){v.y+=22;});imvI=Math.max(0.055,imvI*.93);}
   }
-
   efire+=dt;var ei=Math.max(.28,1.4-(level-1)*.16);
   if(efire>=ei){efire=0;var av=invs.filter(function(v){return v.alive;});if(av.length){var sh=av[Math.floor(Math.random()*av.length)];ebullets.push({x:sh.x+sh.w/2,y:sh.y+sh.h,spd:160+level*25});}}
-
   ufoT+=dt;
   if(!ufo&&ufoT>=ufoI){ufoT=0;ufoI=13+Math.random()*10;var d=Math.random()<.5?1:-1;ufo={x:d>0?-62:GW+62,y:22,w:54,h:20,dir:d,spd:145};}
   if(ufo){ufo.x+=ufo.dir*ufo.spd*dt;if(ufo.x>GW+75||ufo.x<-75)ufo=null;}
-
   outer:for(i=bullets.length-1;i>=0;i--){
     for(j=0;j<invs.length;j++){
       if(!invs[j].alive||!hit(bullets[i],invs[j]))continue;
@@ -406,28 +345,18 @@ function update(dt){
     }
   }
   for(i=bullets.length-1;i>=0;i--){if(ufo&&hit(bullets[i],ufo)){boom(ufo.x+ufo.w/2,ufo.y+ufo.h/2,COL.ufo,18);score+=150*level;ufo=null;bullets.splice(i,1);hud();}}
-
-  [bullets,ebullets].forEach(function(arr){
-    for(i=arr.length-1;i>=0;i--)for(j=0;j<shields.length;j++)if(shields[j].hp>0&&hit(arr[i],shields[j])){shields[j].hp--;arr.splice(i,1);break;}
-  });
-  for(i=ebullets.length-1;i>=0;i--){
-    if(hit(ebullets[i],PL)){ebullets.splice(i,1);lives--;hud();boom(PL.x+PL.w/2,PL.y+PL.h/2,COL.player,24);if(lives<=0){endGame();return;}}
-  }
+  [bullets,ebullets].forEach(function(arr){for(i=arr.length-1;i>=0;i--)for(j=0;j<shields.length;j++)if(shields[j].hp>0&&hit(arr[i],shields[j])){shields[j].hp--;arr.splice(i,1);break;}});
+  for(i=ebullets.length-1;i>=0;i--){if(hit(ebullets[i],PL)){ebullets.splice(i,1);lives--;hud();boom(PL.x+PL.w/2,PL.y+PL.h/2,COL.player,24);if(lives<=0){endGame();return;}}}
   for(i=0;i<invs.length;i++) if(invs[i].alive&&invs[i].y+invs[i].h>=GH-42){endGame();return;}
   if(invs.every(function(v){return!v.alive;})){level++;bullets=[];ebullets=[];buildInvaders(level);buildShields();hud();lvlT=2.0;state='levelup';}
-
   tickP(dt);
 }
-function tickP(dt){
-  parts.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=65*dt;p.life-=dt;});
-  parts=parts.filter(function(p){return p.life>0;});
-}
+function tickP(dt){parts.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=65*dt;p.life-=dt;});parts=parts.filter(function(p){return p.life>0;});}
 function endGame(){
   state='dead';hud();
   var name=document.getElementById('pname').value.trim()||'ANONYME';
-  try{saveScore(name,score,level);}catch(e){log('endGame saveScore threw: '+e);}
+  try{saveScore(name,score,level);}catch(e){log('endGame threw: '+e);}
 }
-
 function render(){
   CTX.clearRect(0,0,GW,GH);CTX.fillStyle=COL.bg;CTX.fillRect(0,0,GW,GH);
   CTX.strokeStyle='rgba(0,28,8,.38)';CTX.lineWidth=1;
@@ -441,8 +370,6 @@ function render(){
   if(state==='levelup')drawLvlUp();
 }
 function loop(ts){var dt=Math.min((ts-last)/1000,.05);last=ts;update(dt);render();requestAnimationFrame(loop);}
-
-/* ── input ── */
 document.addEventListener('keydown',function(e){
   keys[e.key]=true;
   if(e.key===' '){e.preventDefault();if(state==='idle'||state==='dead'){initGame();state='playing';}}
@@ -452,8 +379,6 @@ document.addEventListener('keyup',function(e){keys[e.key]=false;});
 var tx=0;
 CVS.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;if(state==='idle'||state==='dead'){initGame();state='playing';return;}keys[' ']=true;setTimeout(function(){keys[' ']=false;},130);},{passive:true});
 CVS.addEventListener('touchmove',function(e){var dx=e.touches[0].clientX-tx;tx=e.touches[0].clientX;PL.x=Math.max(0,Math.min(GW-PL.w,PL.x+dx));},{passive:true});
-
-/* ── boot ── */
 initGame();state='idle';last=performance.now();requestAnimationFrame(loop);
 </script>
 </body>
