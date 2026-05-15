@@ -5,683 +5,456 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Space Invaders — Grist</title>
 <style>
-/* ── reset ── */
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
-/* ── Google Fonts ── */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-:root {
-  --green:  #00ff88;
-  --red:    #ff2d6b;
-  --cyan:   #00cfff;
-  --gold:   #ffd700;
-  --purple: #b060ff;
-  --bg:     #05050f;
-  --dim:    rgba(5,5,15,0.80);
-  --muted:  #3a5a4a;
-  --font:   'Press Start 2P', monospace;
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --green:#00ff88;--red:#ff2d6b;--cyan:#00cfff;--gold:#ffd700;
+  --purple:#b060ff;--bg:#05050f;--muted:#3a5a4a;
+  --font:'Press Start 2P',monospace;
 }
-
-html, body {
-  width: 100%; height: 100%;
-  background: var(--bg);
-  color: var(--green);
-  font-family: var(--font);
-  overflow: hidden;
-}
-
-/* starfield */
-body::after {
-  content:'';
-  position:fixed; inset:0; pointer-events:none; z-index:0;
+html,body{width:100%;height:100%;background:var(--bg);color:var(--green);font-family:var(--font);overflow:hidden;}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background:
-    radial-gradient(1px 1px at 8%  12%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 22% 45%, #aaf 0%, transparent 100%),
-    radial-gradient(1px 1px at 55%  8%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 73% 58%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 88% 22%, #aaf 0%, transparent 100%),
-    radial-gradient(1px 1px at 18% 78%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 62% 72%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 92% 88%, #aaf 0%, transparent 100%),
-    radial-gradient(1px 1px at  4% 52%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 42% 33%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 77%  7%, #aaf 0%, transparent 100%),
-    radial-gradient(1px 1px at 34% 67%, #fff 0%, transparent 100%),
-    radial-gradient(1px 1px at 96% 42%, #aaf 0%, transparent 100%),
-    radial-gradient(1px 1px at 50% 95%, #fff 0%, transparent 100%);
+    radial-gradient(1px 1px at  8% 12%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 45%,#aaf 0%,transparent 100%),
+    radial-gradient(1px 1px at 55%  8%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 73% 58%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 22%,#aaf 0%,transparent 100%),
+    radial-gradient(1px 1px at 18% 78%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 62% 72%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 92% 88%,#aaf 0%,transparent 100%),
+    radial-gradient(1px 1px at  4% 52%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 42% 33%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 77%  7%,#aaf 0%,transparent 100%),
+    radial-gradient(1px 1px at 34% 67%,#fff 0%,transparent 100%),
+    radial-gradient(1px 1px at 96% 42%,#aaf 0%,transparent 100%),
+    radial-gradient(1px 1px at 50% 95%,#fff 0%,transparent 100%);
 }
-
-/* ── layout ── */
-#wrap {
-  position: relative; z-index:1;
-  display: flex; flex-direction: column; align-items: center;
-  width: 100%; height: 100%; padding: 6px 8px 4px;
-  gap: 4px;
+#wrap{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;
+  width:100%;height:100%;padding:6px 8px 4px;gap:4px;
 }
-
-/* ── HUD ── */
-#hud {
-  display: flex; justify-content: space-between; align-items: center;
-  width: 100%; max-width: 800px;
-  font-size: clamp(7px, 1.4vw, 11px);
-}
-.hud-group { display:flex; flex-direction:column; gap:3px; }
-.hud-group.center { align-items:center; }
-.hud-group.right  { align-items:flex-end; }
-.hud-lbl { font-size:0.7em; color:var(--muted); letter-spacing:2px; }
-.hud-val { color:var(--green); }
-#lives-el { color:var(--red); letter-spacing:4px; }
-
-/* ── canvas wrapper (keeps aspect ratio) ── */
-#canvas-wrap {
-  flex: 1 1 auto;
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; max-width: 800px;
-  min-height: 0; /* critical for flex shrink */
-}
-#c {
-  display: block;
-  /* canvas intrinsic = 800×560, CSS scales it to fit */
-  width:  100%;
-  height: 100%;
-  object-fit: contain;
-  border: 1px solid #1a1a3a;
-  box-shadow: 0 0 30px rgba(0,255,136,0.07);
-  image-rendering: pixelated;
-  cursor: none;
-}
-
-/* ── bottom bar ── */
-#bottom {
-  display:flex; flex-direction:column; align-items:center;
-  gap:3px; width:100%; max-width:800px;
-}
-#name-row {
-  display:flex; align-items:center; gap:8px;
-  font-size: clamp(6px, 1.1vw, 9px);
-  color: var(--muted);
-}
-#name-row input {
-  background:transparent; border:none;
-  border-bottom:1px solid var(--green);
-  color:var(--green); font-family:var(--font);
-  font-size: clamp(6px, 1.1vw, 9px);
-  padding:2px 6px; width:130px; outline:none; letter-spacing:2px;
-}
-#name-row input::placeholder { color:var(--muted); }
-#grist-st {
-  padding:2px 7px; border-radius:2px;
-  border:1px solid var(--muted); color:var(--muted);
-  font-size: clamp(5px, 0.9vw, 8px); letter-spacing:1px;
-  transition: color .3s, border-color .3s;
-}
-#grist-st.ok     { color:#2aff8a;   border-color:#0d4a2a; }
-#grist-st.err    { color:var(--red); border-color:#4a1a1a; }
-#grist-st.saving { color:var(--gold);border-color:#4a3a00; }
-
-#ctrl-row {
-  display:flex; gap:16px;
-  font-size: clamp(5px, 0.85vw, 7px);
-  color:var(--muted);
-}
-.k {
-  border:1px solid #2a3a2a; border-radius:2px;
-  padding:1px 4px; color:#c0d0c0;
-  font-size: inherit;
-}
-
-/* ── debug log ── */
-#dbg {
-  width:100%; max-width:800px;
-  background:rgba(255,0,0,0.05); border:1px solid #3a1a1a;
-  font-family:monospace; font-size:10px; color:#ff8888;
-  padding:4px 8px; max-height:60px; overflow-y:auto;
-  display:none; /* shown only when there are messages */
-}
-
-/* ── leaderboard ── */
-#lb {
-  width:100%; max-width:800px;
-  background:rgba(0,255,136,0.03); border:1px solid #0d2a1a;
-  padding:5px 12px;
-}
-#lb h3 { font-size:clamp(5px,0.9vw,7px); color:var(--muted); letter-spacing:3px; border-bottom:1px solid #0d2a1a; padding-bottom:4px; margin-bottom:4px; }
-#lb-rows { display:flex; flex-direction:column; gap:2px; }
-.lbr {
-  display:flex; justify-content:space-between;
-  font-family:'Courier New',monospace; font-size:clamp(8px,1.3vw,11px);
-  padding:1px 0;
-}
-.lbr .rk { color:var(--muted); width:24px; }
-.lbr .nm { flex:1; color:#c0d0c0; }
-.lbr .lv { color:var(--muted); width:56px; text-align:center; font-size:0.85em; }
-.lbr .sc { color:var(--green); width:64px; text-align:right; }
-.lbr.gold   .nm,.lbr.gold   .sc { color:var(--gold); }
-.lbr.silver .nm,.lbr.silver .sc { color:#c0c0c0; }
-.lbr.bronze .nm,.lbr.bronze .sc { color:#cd7f32; }
-#lb-note { font-size:clamp(5px,0.8vw,7px); color:var(--muted); text-align:center; margin-top:3px; letter-spacing:1px; }
+/* HUD */
+#hud{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:820px;font-size:clamp(7px,1.4vw,11px);}
+.hg{display:flex;flex-direction:column;gap:3px;}
+.hg.c{align-items:center;}.hg.r{align-items:flex-end;}
+.hl{font-size:.7em;color:var(--muted);letter-spacing:2px;}
+.hv{color:var(--green);}
+#lives-el{color:var(--red);letter-spacing:4px;}
+/* Canvas */
+#cw{flex:1 1 auto;display:flex;align-items:center;justify-content:center;width:100%;max-width:820px;min-height:0;}
+#c{display:block;width:100%;height:100%;object-fit:contain;border:1px solid #1a1a3a;box-shadow:0 0 30px rgba(0,255,136,.07);image-rendering:pixelated;cursor:none;}
+/* Bottom */
+#bot{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;max-width:820px;}
+#nr{display:flex;align-items:center;gap:8px;font-size:clamp(6px,1.1vw,9px);color:var(--muted);}
+#nr input{background:transparent;border:none;border-bottom:1px solid var(--green);color:var(--green);font-family:var(--font);font-size:clamp(6px,1.1vw,9px);padding:2px 6px;width:130px;outline:none;letter-spacing:2px;}
+#nr input::placeholder{color:var(--muted);}
+#gst{padding:2px 7px;border-radius:2px;border:1px solid var(--muted);color:var(--muted);font-size:clamp(5px,.9vw,8px);letter-spacing:1px;transition:color .3s,border-color .3s;}
+#gst.ok{color:#2aff8a;border-color:#0d4a2a;}
+#gst.err{color:var(--red);border-color:#4a1a1a;}
+#gst.saving{color:var(--gold);border-color:#4a3a00;}
+#cr{display:flex;gap:16px;font-size:clamp(5px,.85vw,7px);color:var(--muted);}
+.k{border:1px solid #2a3a2a;border-radius:2px;padding:1px 4px;color:#c0d0c0;font-size:inherit;}
+/* Debug */
+#dbg{width:100%;max-width:820px;background:rgba(255,0,0,.06);border:1px solid #3a1a1a;font-family:monospace;font-size:10px;color:#ff9999;padding:4px 8px;max-height:56px;overflow-y:auto;display:none;}
+/* Leaderboard */
+#lb{width:100%;max-width:820px;background:rgba(0,255,136,.03);border:1px solid #0d2a1a;padding:5px 12px;}
+#lb h3{font-size:clamp(5px,.9vw,7px);color:var(--muted);letter-spacing:3px;border-bottom:1px solid #0d2a1a;padding-bottom:4px;margin-bottom:4px;}
+#lbr{display:flex;flex-direction:column;gap:2px;}
+.lr{display:flex;justify-content:space-between;font-family:'Courier New',monospace;font-size:clamp(8px,1.3vw,11px);padding:1px 0;}
+.lr .rk{color:var(--muted);width:24px;}.lr .nm{flex:1;color:#c0d0c0;}
+.lr .lv{color:var(--muted);width:56px;text-align:center;font-size:.85em;}
+.lr .sc{color:var(--green);width:64px;text-align:right;}
+.lr.gold .nm,.lr.gold .sc{color:var(--gold);}
+.lr.silver .nm,.lr.silver .sc{color:#c0c0c0;}
+.lr.bronze .nm,.lr.bronze .sc{color:#cd7f32;}
+#lbn{font-size:clamp(5px,.8vw,7px);color:var(--muted);text-align:center;margin-top:3px;letter-spacing:1px;}
 </style>
 </head>
 <body>
 <div id="wrap">
-
   <div id="hud">
-    <div class="hud-group">
-      <div class="hud-lbl">SCORE</div>
-      <div class="hud-val" id="sc-el">000000</div>
-    </div>
-    <div class="hud-group center">
-      <div class="hud-lbl">VIES</div>
-      <div id="lives-el">&#9829; &#9829; &#9829;</div>
-    </div>
-    <div class="hud-group right">
-      <div class="hud-lbl">NIVEAU</div>
-      <div class="hud-val" id="lvl-el">01</div>
-    </div>
+    <div class="hg"><div class="hl">SCORE</div><div class="hv" id="sc-el">000000</div></div>
+    <div class="hg c"><div class="hl">VIES</div><div id="lives-el">&#9829; &#9829; &#9829;</div></div>
+    <div class="hg r"><div class="hl">NIVEAU</div><div class="hv" id="lvl-el">01</div></div>
   </div>
-
-  <div id="canvas-wrap">
-    <canvas id="c" width="800" height="560"></canvas>
-  </div>
-
-  <div id="bottom">
-    <div id="name-row">
+  <div id="cw"><canvas id="c" width="820" height="560"></canvas></div>
+  <div id="bot">
+    <div id="nr">
       <span>JOUEUR&nbsp;:</span>
-      <input id="pname" type="text" maxlength="12" placeholder="TON NOM"
-             spellcheck="false" autocomplete="off"/>
-      <span id="grist-st">&#9711; GRIST</span>
+      <input id="pname" type="text" maxlength="12" placeholder="TON NOM" spellcheck="false" autocomplete="off"/>
+      <span id="gst">&#9711; GRIST</span>
     </div>
-    <div id="ctrl-row">
+    <div id="cr">
       <span><span class="k">&#8592;</span>&nbsp;<span class="k">&#8594;</span>&nbsp;d&eacute;placer</span>
       <span><span class="k">ESPACE</span>&nbsp;tirer</span>
       <span><span class="k">P</span>&nbsp;pause</span>
     </div>
   </div>
-
   <div id="dbg"></div>
-
   <div id="lb">
     <h3>&#11041;&nbsp;HALL OF FAME</h3>
-    <div id="lb-rows"><div class="lbr" style="justify-content:center;color:var(--muted)">CHARGEMENT...</div></div>
-    <div id="lb-note"></div>
+    <div id="lbr"><div class="lr" style="justify-content:center;color:var(--muted)">CHARGEMENT...</div></div>
+    <div id="lbn"></div>
   </div>
-
 </div>
-
 <script>
-/* ════════════════════════════════════════════════════════
-   GRIST INTEGRATION
-   ════════════════════════════════════════════════════════ */
-var TABLE = 'Scores';   // ← nom de la table Grist (colonnes: Joueur, Score, Niveau, Date)
+/* ══════════════════════════════════════════
+   GRIST — handshake via postMessage
+   ══════════════════════════════════════════ */
+var TABLE = 'Scores';
 var gristOK = false;
-
-var stEl  = document.getElementById('grist-st');
+var stEl = document.getElementById('gst');
 var dbgEl = document.getElementById('dbg');
 
-function setStatus(cls, msg) {
-  stEl.className = cls;
-  stEl.textContent = '\u25cb ' + msg;
-}
-
-function dbg(msg) {
+function setSt(cls, msg){ stEl.className = cls; stEl.textContent = '\u25cb ' + msg; }
+function log(m){
   dbgEl.style.display = 'block';
-  dbgEl.textContent += new Date().toISOString().slice(11,19) + ' ' + msg + '\n';
+  var t = new Date().toISOString().slice(11,19);
+  dbgEl.textContent += t + ' ' + m + '\n';
   dbgEl.scrollTop = dbgEl.scrollHeight;
-  console.log('[SI]', msg);
+  console.log('[SI]', m);
 }
 
-/* Charge l'API plugin Grist dynamiquement */
-(function () {
+/* ── Charge l'API puis envoie le handshake ── */
+function initGrist() {
+  if (typeof grist === 'undefined') { log('grist undefined'); setSt('err','API ABSENTE'); loadDemoLB(); return; }
+
+  log('grist object found, keys: ' + Object.keys(grist).join(','));
+
+  /* Le widget doit appeler grist.ready() — c'est le signal envoyé à Grist
+     pour lui indiquer quel accès on demande. Grist répond via postMessage
+     avec un événement que l'API intercepte en interne. */
+  try {
+    grist.ready({ requiredAccess: 'full' });
+    log('grist.ready() called');
+  } catch(e) { log('grist.ready error: ' + e); }
+
+  /* ── Stratégie de connexion ──
+     On écoute window.message pour détecter la réponse de Grist,
+     ET on utilise grist.onOptions comme fallback (déclenché quand
+     Grist envoie les options du widget, signe que le handshake est OK). */
+  var connected = false;
+
+  function onConnected() {
+    if (connected) return;
+    connected = true;
+    gristOK = true;
+    setSt('ok', 'CONNECTE');
+    log('Grist handshake OK');
+    loadLB();
+  }
+
+  /* Méthode 1 : grist.onOptions (disponible dans toutes les versions récentes) */
+  if (typeof grist.onOptions === 'function') {
+    log('registering grist.onOptions');
+    grist.onOptions(function(options, interaction) {
+      log('onOptions fired');
+      onConnected();
+    });
+  }
+
+  /* Méthode 2 : grist.onReady (versions plus anciennes) */
+  if (typeof grist.onReady === 'function') {
+    log('registering grist.onReady');
+    grist.onReady(function() {
+      log('onReady fired');
+      onConnected();
+    });
+  }
+
+  /* Méthode 3 : écoute directe des postMessages de Grist */
+  window.addEventListener('message', function(ev) {
+    /* Grist envoie plusieurs types de messages.
+       'options', 'ready', 'newRecord' sont des signaux fiables. */
+    if (ev.data && (ev.data.type === 'options' || ev.data.type === 'ready')) {
+      log('postMessage received: ' + JSON.stringify(ev.data).slice(0,80));
+      onConnected();
+    }
+  });
+
+  /* Méthode 4 : tentative directe après 2 s si rien n'a répondu
+     (utile si le widget est intégré dans un iframe sans handshake complet) */
+  setTimeout(function() {
+    if (!connected) {
+      log('2s timeout — tentative directe sans handshake');
+      gristOK = true;
+      setSt('saving', 'TENTATIVE...');
+      /* On teste avec un fetchTable pour vérifier que l'API fonctionne */
+      probeLB();
+    }
+  }, 2000);
+}
+
+function probeLB() {
+  /* Teste si docApi répond, et si oui valide la connexion */
+  if (!grist || !grist.docApi) { setSt('err','docApi ABSENT'); loadDemoLB(); return; }
+  var p;
+  try { p = grist.docApi.fetchTable(TABLE); } catch(e) { setSt('err','FETCH ERR'); log('probe fetchTable threw: '+e); loadDemoLB(); return; }
+  if (!p || typeof p.then !== 'function') { setSt('err','NO PROMISE'); loadDemoLB(); return; }
+  p.then(function(t) {
+    log('probe fetchTable ok, rows: '+(t.Joueur||[]).length);
+    setSt('ok','CONNECTE');
+    renderLBData(t);
+  }).catch(function(e) {
+    log('probe fetchTable rejected: '+e);
+    setSt('err', String(e).slice(0,22));
+    loadDemoLB();
+  });
+}
+
+/* Charge le script API Grist */
+(function(){
   var s = document.createElement('script');
   s.src = 'https://docs.getgrist.com/grist-plugin-api.js';
-
-  s.onload = function () {
-    if (typeof grist === 'undefined') {
-      dbg('grist undefined after script load');
-      setStatus('err', 'API MANQUANTE');
-      loadDemoLB(); return;
-    }
-    dbg('grist-plugin-api.js loaded, calling grist.ready()');
-    try {
-      grist.ready({ requiredAccess: 'full' });
-    } catch(e) { dbg('grist.ready error: ' + e); }
-
-    /* onReady callback — appelé quand Grist a initialisé le widget */
-    if (typeof grist.onReady === 'function') {
-      grist.onReady(function () {
-        gristOK = true;
-        setStatus('ok', 'CONNECTE');
-        dbg('grist.onReady fired');
-        loadLB();
-      });
-    } else {
-      /* fallback : attendre 1s puis considérer prêt */
-      dbg('grist.onReady absent, using timeout fallback');
-      setTimeout(function () {
-        gristOK = true;
-        setStatus('ok', 'CONNECTE (fallback)');
-        loadLB();
-      }, 1000);
-    }
-  };
-
-  s.onerror = function () {
-    dbg('Failed to load grist-plugin-api.js (probably not inside Grist)');
-    setStatus('err', 'HORS GRIST');
-    loadDemoLB();
-  };
-
+  s.onload  = function(){ log('API script loaded'); initGrist(); };
+  s.onerror = function(){ log('API script failed to load'); setSt('err','HORS GRIST'); loadDemoLB(); };
   document.head.appendChild(s);
 })();
 
-/* ── save ── */
-function saveScore(name, score, lvl) {
-  if (!gristOK) { setStatus('err', 'NON CONNECTE'); dbg('saveScore: gristOK=false'); return; }
-  setStatus('saving', 'SAUVEGARDE...');
-  dbg('saveScore: ' + name + ' sc=' + score + ' lv=' + lvl);
-
-  var date = new Date().toISOString().slice(0,10);
-  var record = { Joueur: name || 'ANONYME', Score: score, Niveau: lvl, Date: date };
-
-  /* Essai 1 : grist.docApi.applyUserActions */
-  if (grist.docApi && typeof grist.docApi.applyUserActions === 'function') {
-    dbg('using grist.docApi.applyUserActions');
-    var p;
-    try { p = grist.docApi.applyUserActions([['AddRecord', TABLE, null, record]]); }
-    catch(e) { dbg('applyUserActions threw: ' + e); tryAlternative(record); return; }
-    if (p && typeof p.then === 'function') {
-      p.then(function(r) { dbg('applyUserActions ok: ' + JSON.stringify(r)); onSaveOK(); })
-       .catch(function(e) { dbg('applyUserActions rejected: ' + e); tryAlternative(record); });
-    } else {
-      dbg('applyUserActions returned non-promise'); onSaveOK();
-    }
-  } else {
-    tryAlternative(record);
-  }
-}
-
-/* Essai 2 : grist.selectedTable (ancienne API) */
-function tryAlternative(record) {
-  dbg('trying grist.selectedTable.create');
-  if (grist.selectedTable && typeof grist.selectedTable.create === 'function') {
-    var p2;
-    try { p2 = grist.selectedTable.create([record]); }
-    catch(e) { dbg('selectedTable.create threw: ' + e); onSaveErr('CREATE ERR'); return; }
-    if (p2 && typeof p2.then === 'function') {
-      p2.then(function(r) { dbg('selectedTable.create ok: '+JSON.stringify(r)); onSaveOK(); })
-        .catch(function(e) { dbg('selectedTable.create rejected: '+e); onSaveErr(String(e).slice(0,22)); });
-    } else {
-      onSaveOK();
-    }
-  } else {
-    dbg('no alternative API found on grist object. Keys: ' + Object.keys(grist).join(','));
-    onSaveErr('API INCONNUE');
-  }
-}
-
-function onSaveOK() {
-  setStatus('ok', 'SCORE SAUVE !');
-  setTimeout(function(){ setStatus('ok','CONNECTE'); }, 2500);
-  loadLB();
-}
-function onSaveErr(hint) {
-  setStatus('err', hint || 'ERREUR');
-  document.getElementById('lb-note').textContent =
-    'Verifiez que la table "' + TABLE + '" existe avec les colonnes: Joueur, Score, Niveau, Date';
-}
-
-/* ── load leaderboard ── */
-function loadLB() {
-  if (!gristOK || !grist.docApi) return;
-  dbg('loadLB: fetching table ' + TABLE);
+/* ── SAVE ── */
+function saveScore(name, sc, lv) {
+  if (!gristOK) { setSt('err','NON CONNECTE'); log('saveScore: not ready'); return; }
+  if (!grist || !grist.docApi) { setSt('err','docApi ABSENT'); return; }
+  setSt('saving','SAUVEGARDE...');
+  log('saveScore: '+name+' sc='+sc+' lv='+lv);
+  var rec = { Joueur: name||'ANONYME', Score: sc, Niveau: lv, Date: new Date().toISOString().slice(0,10) };
   var p;
-  try { p = grist.docApi.fetchTable(TABLE); }
-  catch(e) { dbg('fetchTable threw: '+e); document.getElementById('lb-note').textContent = 'Table "'+TABLE+'" introuvable'; return; }
+  try { p = grist.docApi.applyUserActions([['AddRecord', TABLE, null, rec]]); }
+  catch(e) { log('applyUserActions threw: '+e); setSt('err',String(e).slice(0,22)); return; }
+  if (!p || typeof p.then !== 'function') { log('applyUserActions returned non-promise'); onSaveOK(); return; }
+  p.then(function(r){ log('save OK: '+JSON.stringify(r)); onSaveOK(); })
+   .catch(function(e){ log('save REJECTED: '+e); setSt('err',String(e).slice(0,24)); });
+}
+function onSaveOK(){ setSt('ok','SCORE SAUVE !'); setTimeout(function(){ setSt('ok','CONNECTE'); },2500); loadLB(); }
+
+/* ── LEADERBOARD ── */
+function loadLB() {
+  if (!gristOK || !grist || !grist.docApi) return;
+  var p;
+  try { p = grist.docApi.fetchTable(TABLE); } catch(e){ log('loadLB threw: '+e); return; }
   if (!p || typeof p.then !== 'function') return;
-  p.then(function(t) {
-    dbg('fetchTable ok, rows: ' + (t.Joueur||[]).length);
-    var rows = [];
-    var len = (t.Joueur||[]).length;
-    for (var i = 0; i < len; i++) {
-      rows.push({ name: String(t.Joueur[i]||'???'), score: Number(t.Score[i])||0, level: Number(t.Niveau[i])||1 });
-    }
-    rows.sort(function(a,b){ return b.score-a.score; });
-    renderLB(rows.slice(0,8));
-  }).catch(function(e) {
-    dbg('fetchTable error: '+e);
-    document.getElementById('lb-note').textContent = 'Table "'+TABLE+'" introuvable';
-  });
+  p.then(renderLBData).catch(function(e){ log('loadLB rejected: '+e); document.getElementById('lbn').textContent='Table "'+TABLE+'" introuvable'; });
 }
-
-function loadDemoLB() {
-  renderLB([
-    {name:'RAZOR',score:12400,level:5},{name:'NOVA',score:9800,level:4},
-    {name:'GHOST',score:7200,level:3},{name:'PIXEL',score:5100,level:2},
-    {name:'ACE',  score:3200,level:2},
-  ]);
-  document.getElementById('lb-note').textContent = '— MODE DEMONSTRATION —';
+function renderLBData(t) {
+  var rows=[], len=(t.Joueur||[]).length;
+  for(var i=0;i<len;i++) rows.push({name:String(t.Joueur[i]||'???'),score:Number(t.Score[i])||0,level:Number(t.Niveau[i])||1});
+  rows.sort(function(a,b){return b.score-a.score;});
+  renderLB(rows.slice(0,8));
 }
-
-function renderLB(rows) {
-  var medals = ['gold','silver','bronze'];
-  if (!rows.length) {
-    document.getElementById('lb-rows').innerHTML =
-      '<div class="lbr" style="justify-content:center;color:var(--muted)">PAS ENCORE DE SCORES</div>';
-    return;
-  }
-  document.getElementById('lb-rows').innerHTML = rows.map(function(r,i){
-    return '<div class="lbr '+(medals[i]||'')+'">'
-      +'<span class="rk">'+String(i+1).padStart(2,'0')+'.</span>'
-      +'<span class="nm">'+r.name.toUpperCase().slice(0,12)+'</span>'
-      +'<span class="lv">NV.'+String(r.level).padStart(2,'0')+'</span>'
-      +'<span class="sc">'+String(r.score).padStart(6,'0')+'</span>'
-      +'</div>';
+function loadDemoLB(){
+  renderLB([{name:'RAZOR',score:12400,level:5},{name:'NOVA',score:9800,level:4},{name:'GHOST',score:7200,level:3},{name:'PIXEL',score:5100,level:2},{name:'ACE',score:3200,level:2}]);
+  document.getElementById('lbn').textContent='— MODE DEMONSTRATION —';
+}
+function renderLB(rows){
+  var med=['gold','silver','bronze'];
+  if(!rows.length){document.getElementById('lbr').innerHTML='<div class="lr" style="justify-content:center;color:var(--muted)">PAS ENCORE DE SCORES</div>';return;}
+  document.getElementById('lbr').innerHTML=rows.map(function(r,i){
+    return '<div class="lr '+(med[i]||'')+'"><span class="rk">'+String(i+1).padStart(2,'0')+'.</span><span class="nm">'+r.name.toUpperCase().slice(0,12)+'</span><span class="lv">NV.'+String(r.level).padStart(2,'0')+'</span><span class="sc">'+String(r.score).padStart(6,'0')+'</span></div>';
   }).join('');
 }
 
-/* ════════════════════════════════════════════════════════
-   GAME ENGINE  (canvas 800×560)
-   ════════════════════════════════════════════════════════ */
-var CVS  = document.getElementById('c');
-var CTX  = CVS.getContext('2d');
-var GW   = 800, GH = 560;
+/* ══════════════════════════════════════════
+   GAME ENGINE  (canvas 820 × 560)
+   ══════════════════════════════════════════ */
+var CVS=document.getElementById('c'), CTX=CVS.getContext('2d');
+var GW=820, GH=560;
+var COL={bg:'#05050f',player:'#00ff88',bullet:'#00ff88',ebullet:'#ff2d6b',ia:'#ff2d6b',ib:'#00cfff',ic:'#b060ff',ufo:'#ffd700'};
 
-var COL = {
-  bg:'#05050f', player:'#00ff88', bullet:'#00ff88',
-  ebullet:'#ff2d6b', ia:'#ff2d6b', ib:'#00cfff', ic:'#b060ff', ufo:'#ffd700'
-};
+var state='idle', score=0, lives=3, level=1, keys={}, last=0;
+var PL={x:GW/2-20,y:GH-62,w:40,h:24,spd:270};
+var bullets=[],ebullets=[],parts=[],shields=[],invs=[];
+var bcd=0,efire=0,imvT=0,imvI=0.8,idir=1;
+var ufo=null,ufoT=0,ufoI=18,lvlT=0;
 
-var state = 'idle';   // idle | playing | paused | levelup | dead
-var score = 0, lives = 3, level = 1;
-var keys  = {};
-var last  = 0;
-
-var PL = { x:GW/2-20, y:GH-60, w:40, h:24, spd:260 };
-var bullets=[], ebullets=[], parts=[], shields=[], invs=[];
-var bcd=0, efire=0, imvT=0, imvI=0.8, idir=1;
-var ufo=null, ufoT=0, ufoI=18;
-var lvlT=0;
-
-function buildInvaders(lv) {
+function buildInvaders(lv){
   invs=[];
-  var cols=11, rows=4, gx=58, gy=44;
-  var sx=(GW-cols*gx)/2;
+  var cols=11,rows=4,gx=60,gy=44,sx=(GW-cols*gx)/2;
   for(var r=0;r<rows;r++) for(var c=0;c<cols;c++)
-    invs.push({x:sx+c*gx, y:60+r*gy, w:30, h:22, type:r===0?2:r<2?1:0, alive:true, fr:0});
-  imvI=Math.max(0.09, 0.8-(lv-1)*0.09);
-  efire=0; imvT=0;
+    invs.push({x:sx+c*gx,y:62+r*gy,w:30,h:22,type:r===0?2:r<2?1:0,alive:true,fr:0});
+  imvI=Math.max(0.09,0.8-(lv-1)*0.09); efire=0; imvT=0;
 }
-function buildShields() {
+function buildShields(){
   shields=[];
-  var pxs=[85,215,345,480,600];
-  pxs.forEach(function(px){
+  [90,220,355,490,620].forEach(function(px){
     for(var r=0;r<3;r++) for(var c=0;c<5;c++)
-      shields.push({x:px+c*11,y:GH-120+r*11,w:11,h:11,hp:3});
+      shields.push({x:px+c*11,y:GH-122+r*11,w:11,h:11,hp:3});
   });
 }
-function initGame() {
-  score=0; lives=3; level=1;
-  PL.x=GW/2-20;
-  bullets=[]; ebullets=[]; parts=[];
-  bcd=0; ufo=null; ufoT=0;
-  buildInvaders(1); buildShields(); hud();
+function initGame(){
+  score=0;lives=3;level=1;PL.x=GW/2-20;
+  bullets=[];ebullets=[];parts=[];bcd=0;ufo=null;ufoT=0;
+  buildInvaders(1);buildShields();hud();
 }
-function hud() {
-  document.getElementById('sc-el').textContent = String(score).padStart(6,'0');
-  document.getElementById('lvl-el').textContent = String(level).padStart(2,'0');
-  var h='';
-  for(var i=0;i<3;i++) h+=(i<lives?'\u2665':'\u2661')+(i<2?' ':'');
+function hud(){
+  document.getElementById('sc-el').textContent=String(score).padStart(6,'0');
+  document.getElementById('lvl-el').textContent=String(level).padStart(2,'0');
+  var h='';for(var i=0;i<3;i++) h+=(i<lives?'\u2665':'\u2661')+(i<2?' ':'');
   document.getElementById('lives-el').textContent=h;
 }
 
-/* ── drawing helpers ── */
-function glow(col,blur){ CTX.shadowColor=col; CTX.shadowBlur=blur; }
-function noglow(){ CTX.shadowBlur=0; }
+/* ── draw ── */
+function glo(col,b){CTX.shadowColor=col;CTX.shadowBlur=b;}
+function nog(){CTX.shadowBlur=0;}
 
 function drawPlayer(){
   var x=PL.x,y=PL.y,w=PL.w,h=PL.h;
-  glow(COL.player,16); CTX.fillStyle=COL.player;
-  CTX.fillRect(x+6,y+8,w-12,h-8);
-  CTX.fillRect(x+14,y+3,12,10);
-  CTX.fillRect(x+17,y,6,6);
-  CTX.fillRect(x,y+17,8,7);
-  CTX.fillRect(x+w-8,y+17,8,7);
-  noglow();
+  glo(COL.player,16);CTX.fillStyle=COL.player;
+  CTX.fillRect(x+6,y+8,w-12,h-8);CTX.fillRect(x+14,y+3,12,10);
+  CTX.fillRect(x+17,y,6,6);CTX.fillRect(x,y+17,8,7);CTX.fillRect(x+w-8,y+17,8,7);
+  nog();
 }
-
 function drawInv(iv){
   var x=iv.x,y=iv.y,w=iv.w,t=iv.type,f=iv.fr;
   var col=[COL.ic,COL.ib,COL.ia][t];
-  glow(col,7); CTX.fillStyle=col;
+  glo(col,7);CTX.fillStyle=col;
   if(t===0){
-    CTX.fillRect(x+4,y,w-8,4); CTX.fillRect(x+2,y+4,w-4,4); CTX.fillRect(x,y+8,w,4);
-    CTX.fillRect(x+2,y+12,4,4); CTX.fillRect(x+w-6,y+12,4,4);
+    CTX.fillRect(x+4,y,w-8,4);CTX.fillRect(x+2,y+4,w-4,4);CTX.fillRect(x,y+8,w,4);
+    CTX.fillRect(x+2,y+12,4,4);CTX.fillRect(x+w-6,y+12,4,4);
     if(f){CTX.fillRect(x,y+12,2,4);CTX.fillRect(x+w-2,y+12,2,4);}
-    else {CTX.fillRect(x+2,y+14,2,4);CTX.fillRect(x+w-4,y+14,2,4);}
-  } else if(t===1){
-    CTX.fillRect(x+4,y,4,4); CTX.fillRect(x+w-8,y,4,4);
-    CTX.fillRect(x+2,y+4,w-4,4); CTX.fillRect(x,y+8,w,4);
-    CTX.fillRect(x+4,y+12,4,4); CTX.fillRect(x+w-8,y+12,4,4);
+    else{CTX.fillRect(x+2,y+14,2,4);CTX.fillRect(x+w-4,y+14,2,4);}
+  }else if(t===1){
+    CTX.fillRect(x+4,y,4,4);CTX.fillRect(x+w-8,y,4,4);
+    CTX.fillRect(x+2,y+4,w-4,4);CTX.fillRect(x,y+8,w,4);
+    CTX.fillRect(x+4,y+12,4,4);CTX.fillRect(x+w-8,y+12,4,4);
     if(f){CTX.fillRect(x,y+4,2,4);CTX.fillRect(x+w-2,y+4,2,4);}
-  } else {
-    CTX.fillRect(x+2,y,w-4,4); CTX.fillRect(x,y+4,w,8);
-    CTX.fillRect(x+2,y+12,4,4); CTX.fillRect(x+w-6,y+12,4,4);
-    CTX.fillRect(x+8,y+12,4,4); CTX.fillRect(x+w-12,y+12,4,4);
-    CTX.fillStyle=COL.bg;
-    CTX.fillRect(x+6,y+6,3,3); CTX.fillRect(x+w-9,y+6,3,3);
+  }else{
+    CTX.fillRect(x+2,y,w-4,4);CTX.fillRect(x,y+4,w,8);
+    CTX.fillRect(x+2,y+12,4,4);CTX.fillRect(x+w-6,y+12,4,4);
+    CTX.fillRect(x+8,y+12,4,4);CTX.fillRect(x+w-12,y+12,4,4);
+    CTX.fillStyle=COL.bg;CTX.fillRect(x+6,y+6,3,3);CTX.fillRect(x+w-9,y+6,3,3);
   }
-  noglow();
+  nog();
 }
-
 function drawUFO(){
-  if(!ufo) return;
-  glow(COL.ufo,12); CTX.fillStyle=COL.ufo;
-  CTX.fillRect(ufo.x+12,ufo.y,ufo.w-24,ufo.h-4);
-  CTX.fillRect(ufo.x+5,ufo.y+4,ufo.w-10,ufo.h-4);
+  if(!ufo)return;
+  glo(COL.ufo,12);CTX.fillStyle=COL.ufo;
+  CTX.fillRect(ufo.x+12,ufo.y,ufo.w-24,ufo.h-4);CTX.fillRect(ufo.x+5,ufo.y+4,ufo.w-10,ufo.h-4);
   CTX.fillRect(ufo.x,ufo.y+9,ufo.w,ufo.h-9);
-  CTX.fillStyle=COL.bg;
-  for(var i=0;i<3;i++) CTX.fillRect(ufo.x+9+i*14,ufo.y+10,7,5);
-  noglow();
+  CTX.fillStyle=COL.bg;for(var i=0;i<3;i++) CTX.fillRect(ufo.x+9+i*14,ufo.y+10,7,5);
+  nog();
 }
-
 function drawShields(){
   shields.forEach(function(s){
-    if(s.hp<=0) return;
-    CTX.fillStyle='rgba(0,255,136,'+(s.hp/3*0.85)+')';
-    CTX.fillRect(s.x,s.y,s.w,s.h);
+    if(s.hp<=0)return;CTX.fillStyle='rgba(0,255,136,'+(s.hp/3*.85)+')';CTX.fillRect(s.x,s.y,s.w,s.h);
   });
 }
-
 function drawBullets(){
   CTX.shadowBlur=9;
-  bullets.forEach(function(b){ CTX.shadowColor=COL.bullet; CTX.fillStyle=COL.bullet; CTX.fillRect(b.x-2,b.y,4,13); });
-  ebullets.forEach(function(b){ CTX.shadowColor=COL.ebullet;CTX.fillStyle=COL.ebullet;CTX.fillRect(b.x-2,b.y,4,10); });
-  noglow();
+  bullets.forEach(function(b){CTX.shadowColor=COL.bullet;CTX.fillStyle=COL.bullet;CTX.fillRect(b.x-2,b.y,4,14);});
+  ebullets.forEach(function(b){CTX.shadowColor=COL.ebullet;CTX.fillStyle=COL.ebullet;CTX.fillRect(b.x-2,b.y,4,10);});
+  nog();
 }
-
 function drawParts(){
-  parts.forEach(function(p){
-    CTX.globalAlpha=Math.max(0,p.life/p.ml);
-    CTX.fillStyle=p.col;
-    CTX.fillRect(p.x,p.y,p.s,p.s);
-  });
+  parts.forEach(function(p){CTX.globalAlpha=Math.max(0,p.life/p.ml);CTX.fillStyle=p.col;CTX.fillRect(p.x,p.y,p.s,p.s);});
   CTX.globalAlpha=1;
 }
-
-function drawGround(){
-  CTX.strokeStyle='rgba(0,255,136,0.16)'; CTX.lineWidth=1;
-  CTX.beginPath(); CTX.moveTo(0,GH-40); CTX.lineTo(GW,GH-40); CTX.stroke();
-}
+function drawGround(){CTX.strokeStyle='rgba(0,255,136,.16)';CTX.lineWidth=1;CTX.beginPath();CTX.moveTo(0,GH-42);CTX.lineTo(GW,GH-42);CTX.stroke();}
 
 function overlay(l1,l2){
-  CTX.fillStyle='rgba(5,5,15,0.80)'; CTX.fillRect(0,0,GW,GH);
-  glow('#00ff88',22); CTX.fillStyle='#00ff88';
-  CTX.font='20px "Press Start 2P"'; CTX.textAlign='center';
-  CTX.fillText(l1,GW/2,GH/2-28);
-  noglow();
-  CTX.fillStyle='#3a6a4a'; CTX.font='10px "Press Start 2P"';
-  CTX.fillText(l2,GW/2,GH/2+14);
-  CTX.textAlign='left';
+  CTX.fillStyle='rgba(5,5,15,.80)';CTX.fillRect(0,0,GW,GH);
+  glo('#00ff88',22);CTX.fillStyle='#00ff88';CTX.font='22px "Press Start 2P"';CTX.textAlign='center';
+  CTX.fillText(l1,GW/2,GH/2-30);nog();
+  CTX.fillStyle='#3a6a4a';CTX.font='11px "Press Start 2P"';CTX.fillText(l2,GW/2,GH/2+16);CTX.textAlign='left';
 }
-
 function drawLvlUp(){
   CTX.globalAlpha=Math.min(1,lvlT*2.5);
-  glow('#00cfff',18); CTX.fillStyle='#00cfff';
-  CTX.font='16px "Press Start 2P"'; CTX.textAlign='center';
-  CTX.fillText('NIVEAU '+level+' !',GW/2,GH/2);
-  CTX.textAlign='left'; noglow(); CTX.globalAlpha=1;
+  glo('#00cfff',18);CTX.fillStyle='#00cfff';CTX.font='18px "Press Start 2P"';CTX.textAlign='center';
+  CTX.fillText('NIVEAU '+level+' !',GW/2,GH/2);CTX.textAlign='left';nog();CTX.globalAlpha=1;
 }
 
 /* ── physics ── */
 function boom(x,y,col,n){
-  for(var i=0;i<(n||12);i++){
-    var a=Math.random()*Math.PI*2, v=35+Math.random()*95;
-    parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,col:col,life:.5+Math.random()*.5,ml:.5+Math.random()*.5,s:2+Math.random()*3.5});
-  }
+  for(var i=0;i<(n||12);i++){var a=Math.random()*Math.PI*2,v=35+Math.random()*95;parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,col:col,life:.5+Math.random()*.5,ml:.5+Math.random()*.5,s:2+Math.random()*3.5});}
 }
-function hit(b,o){ return b.x>o.x&&b.x<o.x+o.w&&b.y>o.y&&b.y<o.y+o.h; }
+function hit(b,o){return b.x>o.x&&b.x<o.x+o.w&&b.y>o.y&&b.y<o.y+o.h;}
 
 function update(dt){
-  if(state==='levelup'){ lvlT-=dt; if(lvlT<=0) state='playing'; tickParts(dt); return; }
-  if(state!=='playing') return;
+  if(state==='levelup'){lvlT-=dt;if(lvlT<=0)state='playing';tickP(dt);return;}
+  if(state!=='playing')return;
 
-  if(keys['ArrowLeft'] ||keys['a']) PL.x=Math.max(0,PL.x-PL.spd*dt);
+  if(keys['ArrowLeft']||keys['a']) PL.x=Math.max(0,PL.x-PL.spd*dt);
   if(keys['ArrowRight']||keys['d']) PL.x=Math.min(GW-PL.w,PL.x+PL.spd*dt);
   bcd-=dt;
-  if((keys[' ']||keys['ArrowUp'])&&bcd<=0){ bullets.push({x:PL.x+PL.w/2,y:PL.y,spd:560}); bcd=0.26; }
+  if((keys[' ']||keys['ArrowUp'])&&bcd<=0){bullets.push({x:PL.x+PL.w/2,y:PL.y,spd:580});bcd=0.25;}
 
   var i,j;
-  for(i=bullets.length-1;i>=0;i--){bullets[i].y-=bullets[i].spd*dt; if(bullets[i].y<-14) bullets.splice(i,1);}
-  for(i=ebullets.length-1;i>=0;i--){ebullets[i].y+=ebullets[i].spd*dt; if(ebullets[i].y>GH+14) ebullets.splice(i,1);}
+  for(i=bullets.length-1;i>=0;i--){bullets[i].y-=bullets[i].spd*dt;if(bullets[i].y<-15)bullets.splice(i,1);}
+  for(i=ebullets.length-1;i>=0;i--){ebullets[i].y+=ebullets[i].spd*dt;if(ebullets[i].y>GH+15)ebullets.splice(i,1);}
 
-  /* invader movement */
   imvT+=dt;
   if(imvT>=imvI){
-    imvT=0;
-    var live=invs.filter(function(v){return v.alive;});
-    var edge=false;
-    live.forEach(function(v){v.fr=1-v.fr; v.x+=12*idir; if(v.x<=2||v.x+v.w>=GW-2) edge=true;});
-    if(edge){ idir*=-1; live.forEach(function(v){v.y+=22;}); imvI=Math.max(0.055,imvI*0.93); }
+    imvT=0;var live=invs.filter(function(v){return v.alive;}),edge=false;
+    live.forEach(function(v){v.fr=1-v.fr;v.x+=13*idir;if(v.x<=2||v.x+v.w>=GW-2)edge=true;});
+    if(edge){idir*=-1;live.forEach(function(v){v.y+=22;});imvI=Math.max(0.055,imvI*.93);}
   }
 
-  /* enemy fire */
-  efire+=dt;
-  var ei=Math.max(0.30,1.4-(level-1)*0.16);
-  if(efire>=ei){
-    efire=0;
-    var av=invs.filter(function(v){return v.alive;});
-    if(av.length){ var sh=av[Math.floor(Math.random()*av.length)]; ebullets.push({x:sh.x+sh.w/2,y:sh.y+sh.h,spd:155+level*24}); }
-  }
+  efire+=dt;var ei=Math.max(.28,1.4-(level-1)*.16);
+  if(efire>=ei){efire=0;var av=invs.filter(function(v){return v.alive;});if(av.length){var sh=av[Math.floor(Math.random()*av.length)];ebullets.push({x:sh.x+sh.w/2,y:sh.y+sh.h,spd:160+level*25});}}
 
-  /* UFO */
   ufoT+=dt;
-  if(!ufo&&ufoT>=ufoI){ ufoT=0; ufoI=13+Math.random()*10; var d=Math.random()<.5?1:-1; ufo={x:d>0?-60:GW+60,y:20,w:52,h:20,dir:d,spd:140}; }
-  if(ufo){ ufo.x+=ufo.dir*ufo.spd*dt; if(ufo.x>GW+70||ufo.x<-70) ufo=null; }
+  if(!ufo&&ufoT>=ufoI){ufoT=0;ufoI=13+Math.random()*10;var d=Math.random()<.5?1:-1;ufo={x:d>0?-62:GW+62,y:22,w:54,h:20,dir:d,spd:145};}
+  if(ufo){ufo.x+=ufo.dir*ufo.spd*dt;if(ufo.x>GW+75||ufo.x<-75)ufo=null;}
 
-  /* bullets vs invaders */
-  outer: for(i=bullets.length-1;i>=0;i--){
+  outer:for(i=bullets.length-1;i>=0;i--){
     for(j=0;j<invs.length;j++){
-      if(!invs[j].alive||!hit(bullets[i],invs[j])) continue;
-      invs[j].alive=false;
-      boom(invs[j].x+invs[j].w/2,invs[j].y+invs[j].h/2,[COL.ic,COL.ib,COL.ia][invs[j].type],10);
-      score+=(invs[j].type===2?30:invs[j].type===1?20:10)*level;
-      bullets.splice(i,1); hud(); continue outer;
+      if(!invs[j].alive||!hit(bullets[i],invs[j]))continue;
+      invs[j].alive=false;boom(invs[j].x+invs[j].w/2,invs[j].y+invs[j].h/2,[COL.ic,COL.ib,COL.ia][invs[j].type],10);
+      score+=(invs[j].type===2?30:invs[j].type===1?20:10)*level;bullets.splice(i,1);hud();continue outer;
     }
   }
-  /* bullets vs UFO */
-  for(i=bullets.length-1;i>=0;i--){
-    if(ufo&&hit(bullets[i],ufo)){ boom(ufo.x+ufo.w/2,ufo.y+ufo.h/2,COL.ufo,18); score+=150*level; ufo=null; bullets.splice(i,1); hud(); }
-  }
-  /* bullets & ebullets vs shields */
+  for(i=bullets.length-1;i>=0;i--){if(ufo&&hit(bullets[i],ufo)){boom(ufo.x+ufo.w/2,ufo.y+ufo.h/2,COL.ufo,18);score+=150*level;ufo=null;bullets.splice(i,1);hud();}}
+
   [bullets,ebullets].forEach(function(arr){
-    for(i=arr.length-1;i>=0;i--)
-      for(j=0;j<shields.length;j++)
-        if(shields[j].hp>0&&hit(arr[i],shields[j])){ shields[j].hp--; arr.splice(i,1); break; }
+    for(i=arr.length-1;i>=0;i--)for(j=0;j<shields.length;j++)if(shields[j].hp>0&&hit(arr[i],shields[j])){shields[j].hp--;arr.splice(i,1);break;}
   });
-  /* ebullets vs player */
   for(i=ebullets.length-1;i>=0;i--){
-    if(hit(ebullets[i],PL)){
-      ebullets.splice(i,1); lives--; hud();
-      boom(PL.x+PL.w/2,PL.y+PL.h/2,COL.player,24);
-      if(lives<=0){ endGame(); return; }
-    }
+    if(hit(ebullets[i],PL)){ebullets.splice(i,1);lives--;hud();boom(PL.x+PL.w/2,PL.y+PL.h/2,COL.player,24);if(lives<=0){endGame();return;}}
   }
-  /* invaders reach ground */
-  for(i=0;i<invs.length;i++) if(invs[i].alive&&invs[i].y+invs[i].h>=GH-40){ endGame(); return; }
+  for(i=0;i<invs.length;i++) if(invs[i].alive&&invs[i].y+invs[i].h>=GH-42){endGame();return;}
+  if(invs.every(function(v){return!v.alive;})){level++;bullets=[];ebullets=[];buildInvaders(level);buildShields();hud();lvlT=2.0;state='levelup';}
 
-  /* all dead → next level */
-  if(invs.every(function(v){return !v.alive;})){
-    level++; bullets=[]; ebullets=[];
-    buildInvaders(level); buildShields(); hud();
-    lvlT=2.0; state='levelup';
-  }
-
-  tickParts(dt);
+  tickP(dt);
 }
-
-function tickParts(dt){
+function tickP(dt){
   parts.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=65*dt;p.life-=dt;});
   parts=parts.filter(function(p){return p.life>0;});
 }
-
 function endGame(){
-  state='dead'; hud();
+  state='dead';hud();
   var name=document.getElementById('pname').value.trim()||'ANONYME';
-  try{ saveScore(name,score,level); } catch(e){ dbg('endGame saveScore threw: '+e); }
+  try{saveScore(name,score,level);}catch(e){log('endGame saveScore threw: '+e);}
 }
 
-/* ── render ── */
 function render(){
-  CTX.clearRect(0,0,GW,GH);
-  CTX.fillStyle=COL.bg; CTX.fillRect(0,0,GW,GH);
-  CTX.strokeStyle='rgba(0,28,8,0.38)'; CTX.lineWidth=1;
-  for(var y=0;y<GH;y+=20){ CTX.beginPath(); CTX.moveTo(0,y); CTX.lineTo(GW,y); CTX.stroke(); }
-
-  drawGround(); drawShields(); drawBullets();
-  invs.forEach(function(v){ if(v.alive) drawInv(v); });
-  drawUFO(); drawPlayer(); drawParts();
-
-  if(state==='idle')    overlay('SPACE INVADERS','APPUIE SUR ESPACE POUR JOUER');
-  if(state==='paused')  overlay('PAUSE','P POUR REPRENDRE');
-  if(state==='dead')    overlay('GAME OVER','SCORE: '+String(score).padStart(6,'0')+'   ESPACE = REJOUER');
-  if(state==='levelup') drawLvlUp();
+  CTX.clearRect(0,0,GW,GH);CTX.fillStyle=COL.bg;CTX.fillRect(0,0,GW,GH);
+  CTX.strokeStyle='rgba(0,28,8,.38)';CTX.lineWidth=1;
+  for(var y=0;y<GH;y+=20){CTX.beginPath();CTX.moveTo(0,y);CTX.lineTo(GW,y);CTX.stroke();}
+  drawGround();drawShields();drawBullets();
+  invs.forEach(function(v){if(v.alive)drawInv(v);});
+  drawUFO();drawPlayer();drawParts();
+  if(state==='idle')   overlay('SPACE INVADERS','APPUIE SUR ESPACE POUR JOUER');
+  if(state==='paused') overlay('PAUSE','P POUR REPRENDRE');
+  if(state==='dead')   overlay('GAME OVER','SCORE: '+String(score).padStart(6,'0')+'   ESPACE = REJOUER');
+  if(state==='levelup')drawLvlUp();
 }
-
-function loop(ts){
-  var dt=Math.min((ts-last)/1000,0.05); last=ts;
-  update(dt); render();
-  requestAnimationFrame(loop);
-}
+function loop(ts){var dt=Math.min((ts-last)/1000,.05);last=ts;update(dt);render();requestAnimationFrame(loop);}
 
 /* ── input ── */
 document.addEventListener('keydown',function(e){
   keys[e.key]=true;
-  if(e.key===' '){
-    e.preventDefault();
-    if(state==='idle'||state==='dead'){ initGame(); state='playing'; }
-  }
-  if(e.key==='p'||e.key==='P'){
-    if(state==='playing') state='paused';
-    else if(state==='paused') state='playing';
-  }
+  if(e.key===' '){e.preventDefault();if(state==='idle'||state==='dead'){initGame();state='playing';}}
+  if(e.key==='p'||e.key==='P'){if(state==='playing')state='paused';else if(state==='paused')state='playing';}
 });
-document.addEventListener('keyup',function(e){ keys[e.key]=false; });
-
-var txStart=0;
-CVS.addEventListener('touchstart',function(e){
-  txStart=e.touches[0].clientX;
-  if(state==='idle'||state==='dead'){ initGame(); state='playing'; return; }
-  keys[' ']=true; setTimeout(function(){keys[' ']=false;},130);
-},{passive:true});
-CVS.addEventListener('touchmove',function(e){
-  var dx=e.touches[0].clientX-txStart; txStart=e.touches[0].clientX;
-  PL.x=Math.max(0,Math.min(GW-PL.w,PL.x+dx));
-},{passive:true});
+document.addEventListener('keyup',function(e){keys[e.key]=false;});
+var tx=0;
+CVS.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;if(state==='idle'||state==='dead'){initGame();state='playing';return;}keys[' ']=true;setTimeout(function(){keys[' ']=false;},130);},{passive:true});
+CVS.addEventListener('touchmove',function(e){var dx=e.touches[0].clientX-tx;tx=e.touches[0].clientX;PL.x=Math.max(0,Math.min(GW-PL.w,PL.x+dx));},{passive:true});
 
 /* ── boot ── */
-initGame(); state='idle'; last=performance.now();
-requestAnimationFrame(loop);
+initGame();state='idle';last=performance.now();requestAnimationFrame(loop);
 </script>
 </body>
 </html>
